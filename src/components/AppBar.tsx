@@ -40,43 +40,50 @@ export const AppBar = ({ title, showBack = false, username = "John Doe" }: AppBa
     <>
       <header className="glass-effect shadow-soft sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Left section */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              {showBack && (
+          <div className="flex flex-col py-3 gap-3">
+            {/* Top section - Title and Logout */}
+            <div className="flex items-center justify-between">
+              {/* Left - Back button */}
+              <div className="flex items-center gap-3">
+                {showBack && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleBack}
+                    className="transition-smooth hover:bg-muted"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Center - Title */}
+              <div className="flex-1 text-center">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
+                  {title}
+                </h1>
+              </div>
+
+              {/* Right - Logout */}
+              <div className="flex items-center">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={handleBack}
-                  className="transition-smooth hover:bg-muted"
+                  onClick={handleLogoutClick}
+                  className="transition-smooth hover:bg-destructive/10"
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <LogOut className="h-5 w-5 text-destructive" />
                 </Button>
-              )}
+              </div>
             </div>
 
-            {/* Center section */}
-            <div className="text-center flex-1 px-4">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
-                {title}
-              </h1>
-            </div>
-
-            {/* Right section */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="bg-accent/20 px-4 py-2 rounded-full">
+            {/* Bottom section - User ID */}
+            <div className="flex justify-center">
+              <div className="bg-accent px-6 py-2 rounded-full">
                 <p className="text-xs sm:text-sm font-medium text-foreground">
                   User – {username}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogoutClick}
-                className="transition-smooth hover:bg-destructive/10"
-              >
-                <LogOut className="h-5 w-5 text-destructive" />
-              </Button>
             </div>
           </div>
         </div>

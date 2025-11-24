@@ -16,21 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
 
 const SelectInboundBin = () => {
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
   const [selectedBin, setSelectedBin] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Mock data - 50 bins
@@ -57,31 +49,9 @@ const SelectInboundBin = () => {
     }
   };
 
-  const handleSearch = () => {
-    setShowSearch(true);
-  };
-
-  const handleSearchSubmit = () => {
-    if (searchQuery.trim()) {
-      const foundBin = allBins.find(
-        (bin) => bin.id.toLowerCase() === searchQuery.toLowerCase()
-      );
-      if (foundBin) {
-        setShowSearch(false);
-        setSearchQuery("");
-        handleBinClick(foundBin.id);
-      } else {
-        toast({
-          title: "Bin not found",
-          description: `No bin found with ID: ${searchQuery}`,
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   const handleClearSearch = () => {
     setSearchQuery("");
+    setIsSearchExpanded(false);
   };
 
   return (
@@ -89,36 +59,47 @@ const SelectInboundBin = () => {
       <AppBar title="Select Inbound Bin" showBack username={username} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Search Button */}
+        {/* Search Bar */}
         <div className="flex justify-center mb-6 sm:mb-8">
-          <Button
-            onClick={handleSearch}
-            variant="outline"
-            className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg border-accent/30 hover:border-accent hover:bg-accent/10 transition-smooth"
-          >
-            <Search className="mr-2 h-5 w-5 text-destructive" />
-            Search by Bin ID
-          </Button>
-        </div>
-
-        {/* Search Filter Display */}
-        {searchQuery && (
-          <div className="flex justify-center mb-4">
-            <div className="bg-accent/20 px-4 py-2 rounded-full flex items-center gap-2">
-              <p className="text-sm text-foreground">
-                Filtering: <span className="font-semibold">{searchQuery}</span>
-              </p>
+          <div className={`transition-all duration-300 ${
+            isSearchExpanded ? 'w-full max-w-md' : 'w-auto'
+          }`}>
+            {!isSearchExpanded ? (
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClearSearch}
-                className="h-6 w-6 rounded-full hover:bg-destructive/10"
+                onClick={() => setIsSearchExpanded(true)}
+                variant="outline"
+                className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg border-accent/30 hover:border-accent hover:bg-accent/10 transition-smooth"
               >
-                <X className="h-4 w-4 text-destructive" />
+                <Search className="mr-2 h-5 w-5 text-destructive" />
+                Search by Bin ID
               </Button>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 w-full animate-fade-in">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Type Bin ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-10 h-12 sm:h-14"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleClearSearch}
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Total Bins */}
         <div className="text-center mb-6 sm:mb-8">
@@ -147,45 +128,6 @@ const SelectInboundBin = () => {
 
       <Footer />
 
-      {/* Search Dialog */}
-      <Dialog open={showSearch} onOpenChange={setShowSearch}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Search Bin by ID</DialogTitle>
-            <DialogDescription>
-              Enter the bin ID to search and select
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Enter Bin ID (e.g., DR1F01)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
-              className="text-base"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSearchSubmit}
-                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-              >
-                <Search className="mr-2 h-4 w-4" />
-                Search
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowSearch(false);
-                  setSearchQuery("");
-                }}
-                variant="outline"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
