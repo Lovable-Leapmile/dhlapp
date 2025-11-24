@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { BinCard } from "@/components/BinCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, X } from "lucide-react";
+import { Search, X, Filter } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,7 @@ const SelectInboundBin = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "empty">("all");
 
   // Mock data - 50 bins
   const allBins = Array.from({ length: 50 }, (_, i) => ({
@@ -31,12 +32,17 @@ const SelectInboundBin = () => {
     itemCount: Math.floor(Math.random() * 10) + 1,
   }));
 
-  // Filter bins based on search query
-  const bins = searchQuery
+  // Filter bins based on search query and filter type
+  let bins = searchQuery
     ? allBins.filter((bin) =>
         bin.id.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : allBins;
+
+  // Apply empty filter
+  if (filterType === "empty") {
+    bins = bins.filter((bin) => bin.itemCount === 0);
+  }
 
   const handleBinClick = (binId: string) => {
     setSelectedBin(binId);
@@ -59,8 +65,8 @@ const SelectInboundBin = () => {
       <AppBar title="Select Inbound Bin" showBack username={username} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Search Bar */}
-        <div className="flex justify-center mb-6 sm:mb-8">
+        {/* Search Bar and Filter */}
+        <div className="flex justify-center items-center gap-3 mb-6 sm:mb-8">
           <div className={`transition-all duration-300 ${
             isSearchExpanded ? 'w-full max-w-md' : 'w-auto'
           }`}>
@@ -99,6 +105,16 @@ const SelectInboundBin = () => {
               </div>
             )}
           </div>
+          
+          {/* Filter Button */}
+          <Button
+            variant={filterType === "empty" ? "default" : "outline"}
+            onClick={() => setFilterType(filterType === "all" ? "empty" : "all")}
+            className="h-12 sm:h-14 px-4 sm:px-6"
+          >
+            <Filter className="mr-2 h-5 w-5" />
+            {filterType === "all" ? "All" : "Empty"}
+          </Button>
         </div>
 
         {/* Total Bins */}
