@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Barcode } from "lucide-react";
 import { toast } from "sonner";
-import robotAnimation from "@/assets/robot-bin-animation.png";
+import robotAnimation from "@/assets/robot-bin-animation.gif";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,15 +33,26 @@ const ScanItemToInbound = () => {
   const [scannedItem, setScannedItem] = useState("");
   const [items, setItems] = useState<string[]>([]);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
   useEffect(() => {
     // Simulate robot retrieving bin
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const handleScan = (value: string) => {
     if (value.trim() === "") return;
@@ -49,14 +60,10 @@ const ScanItemToInbound = () => {
     if (VALID_ITEMS.includes(value.toLowerCase())) {
       setItems((prev) => [...prev, value]);
       setScannedItem("");
-      toast.success("Item added successfully", {
-        duration: 2000,
-      });
+      setNotification({ type: 'success', message: 'Item added successfully' });
     } else {
       setScannedItem("");
-      toast.error("Item didn't added, invalid item", {
-        duration: 2000,
-      });
+      setNotification({ type: 'error', message: "Item didn't added, invalid item" });
     }
   };
 
@@ -73,11 +80,10 @@ const ScanItemToInbound = () => {
 
   const handleCompleteOrder = () => {
     if (items.length === 0) {
-      toast.error("Please scan at least one item");
+      setNotification({ type: 'error', message: 'Please scan at least one item' });
       return;
     }
-    toast.success("Order completed successfully!");
-    navigate("/inbound/select-bin");
+    setShowCompleteDialog(true);
   };
 
   const handleBack = () => {
@@ -175,6 +181,19 @@ const ScanItemToInbound = () => {
 
       <Footer />
 
+      {/* Notification Popup */}
+      {notification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className={`px-8 py-4 rounded-lg backdrop-blur-md ${
+            notification.type === 'success' 
+              ? 'bg-green-500/80' 
+              : 'bg-red-500/80'
+          } text-white text-lg font-semibold animate-fade-in shadow-xl`}>
+            {notification.message}
+          </div>
+        </div>
+      )}
+
       {/* Back Confirmation Dialog */}
       <AlertDialog open={showBackConfirm} onOpenChange={setShowBackConfirm}>
         <AlertDialogContent>
@@ -192,6 +211,26 @@ const ScanItemToInbound = () => {
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Complete Order Dialog */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Order Completed Successfully</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your inbound order has been completed successfully.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => navigate("/dashboard")}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              Return to Dashboard
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
