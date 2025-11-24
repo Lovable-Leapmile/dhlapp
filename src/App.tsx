@@ -8,6 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import SelectInboundBin from "./pages/SelectInboundBin";
 import ScanItemToInbound from "./pages/ScanItemToInbound";
 import Pickup from "./pages/Pickup";
+import SelectPickupBin from "./pages/SelectPickupBin";
+import ScanItemToPickup from "./pages/ScanItemToPickup";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/inbound/select-bin" element={<SelectInboundBin />} />
           <Route path="/inbound/scan-items" element={<ScanItemToInbound />} />
           <Route path="/pickup" element={<Pickup />} />
+          <Route path="/pickup/select-bin" element={<SelectPickupBin />} />
+          <Route path="/pickup/scan-items" element={<ScanItemToPickup />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

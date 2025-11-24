@@ -1,4 +1,4 @@
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -17,14 +17,20 @@ interface AppBarProps {
   title: string;
   showBack?: boolean;
   username?: string;
+  showHomeIcon?: boolean;
+  onBack?: () => void;
 }
 
-export const AppBar = ({ title, showBack = false, username = "John Doe" }: AppBarProps) => {
+export const AppBar = ({ title, showBack = false, username = "John Doe", showHomeIcon = false, onBack }: AppBarProps) => {
   const navigate = useNavigate();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleBack = () => {
-    navigate(-1);
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleLogoutClick = () => {
@@ -59,9 +65,14 @@ export const AppBar = ({ title, showBack = false, username = "John Doe" }: AppBa
 
               {/* Center - Title */}
               <div className="flex-1 text-center">
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
-                  {title}
-                </h1>
+                <div className="flex items-center justify-center gap-2">
+                  {showHomeIcon && (
+                    <Home className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
+                  )}
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
+                    {title}
+                  </h1>
+                </div>
               </div>
 
               {/* Right - Logout */}
