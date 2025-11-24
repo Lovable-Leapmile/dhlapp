@@ -47,6 +47,8 @@ const SelectPickupBin = () => {
 
       try {
         setIsLoading(true);
+        console.log("Fetching bins with token:", authToken);
+        
         const response = await fetch(
           "https://robotmanagerv1test.qikpod.com/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=DESC",
           {
@@ -58,32 +60,34 @@ const SelectPickupBin = () => {
           }
         );
 
+        console.log("Response status:", response.status);
+        console.log("Response ok:", response.ok);
+
         if (!response.ok) {
-          throw new Error("Failed to fetch bins");
+          const errorText = await response.text();
+          console.error("API Error Response:", errorText);
+          throw new Error(`Failed to fetch bins: ${response.status} ${errorText}`);
         }
 
         const data = await response.json();
         
         console.log("API Response:", data);
         
-        // Map API response to bin format - handle different response structures
+        // Map API response to bin format - the data is in the 'records' property
         let bins: Bin[] = [];
         
-        if (Array.isArray(data)) {
-          // If response is directly an array
+        if (data.records && Array.isArray(data.records)) {
+          bins = data.records.map((tray: any) => ({
+            id: tray.tray_id,
+            itemCount: tray.total_item_quantity || 0,
+          }));
+        } else if (Array.isArray(data)) {
           bins = data.map((tray: any) => ({
             id: tray.tray_id,
             itemCount: tray.total_item_quantity || 0,
           }));
         } else if (data.data && Array.isArray(data.data)) {
-          // If response has a data property containing array
           bins = data.data.map((tray: any) => ({
-            id: tray.tray_id,
-            itemCount: tray.total_item_quantity || 0,
-          }));
-        } else if (data.trays && Array.isArray(data.trays)) {
-          // If response has a trays property containing array
-          bins = data.trays.map((tray: any) => ({
             id: tray.tray_id,
             itemCount: tray.total_item_quantity || 0,
           }));
@@ -92,6 +96,7 @@ const SelectPickupBin = () => {
           throw new Error("Invalid response structure from API");
         }
 
+        console.log("Mapped bins:", bins);
         setAllBins(bins);
       } catch (error) {
         toast.error("Failed to load bins. Please try again.");
