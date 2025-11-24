@@ -26,10 +26,10 @@ const SelectPickupBin = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "empty">("all");
 
-  // Mock data - 50 bins
+  // Mock data - 50 bins with some empty ones
   const allBins = Array.from({ length: 50 }, (_, i) => ({
     id: `BIN-${String(i + 1).padStart(3, "0")}`,
-    itemCount: Math.floor(Math.random() * 10) + 1,
+    itemCount: i % 5 === 0 ? 0 : Math.floor(Math.random() * 10) + 1,
   }));
 
   // Filter bins based on search query and filter type
@@ -122,7 +122,7 @@ const SelectPickupBin = () => {
         </div>
 
         {/* Bins Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pb-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pb-6">
           {bins.map((bin, index) => (
             <div
               key={bin.id}

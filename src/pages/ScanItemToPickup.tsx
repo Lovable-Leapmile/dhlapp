@@ -147,9 +147,6 @@ const ScanItemToPickup = () => {
                   autoFocus
                 />
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Valid items: item1, item2, item3, item4, item5
-              </p>
             </div>
 
             {/* Scanned Items List */}
