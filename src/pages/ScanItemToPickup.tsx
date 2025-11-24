@@ -23,7 +23,7 @@ import {
 
 const VALID_ITEMS = ["item1", "item2", "item3", "item4", "item5"];
 
-const ScanItemToInbound = () => {
+const ScanItemToPickup = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
@@ -49,12 +49,12 @@ const ScanItemToInbound = () => {
     if (VALID_ITEMS.includes(value.toLowerCase())) {
       setItems((prev) => [...prev, value]);
       setScannedItem("");
-      toast.success("Item added successfully", {
+      toast.success("Item picked successfully", {
         duration: 2000,
       });
     } else {
       setScannedItem("");
-      toast.error("Item didn't added, invalid item", {
+      toast.error("Item didn't picked, invalid item", {
         duration: 2000,
       });
     }
@@ -76,8 +76,8 @@ const ScanItemToInbound = () => {
       toast.error("Please scan at least one item");
       return;
     }
-    toast.success("Order completed successfully!");
-    navigate("/inbound/select-bin");
+    toast.success("Pickup completed successfully!");
+    navigate("/pickup/select-bin");
   };
 
   const handleBack = () => {
@@ -90,7 +90,7 @@ const ScanItemToInbound = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppBar title="Scan Item to Inbound" showBack username={username} onBack={handleBack} />
+      <AppBar title="Scan Item to Pickup" showBack username={username} onBack={handleBack} />
 
       {isLoading ? (
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex items-center justify-center">
@@ -105,7 +105,7 @@ const ScanItemToInbound = () => {
                 Retrieving Bin {binId}
               </h3>
               <p className="text-base sm:text-lg text-muted-foreground">
-                Robot is delivering the bin to the inbound station...
+                Robot is delivering the bin to the picking station...
               </p>
             </div>
           </div>
@@ -150,7 +150,7 @@ const ScanItemToInbound = () => {
             {items.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-base sm:text-lg font-medium text-foreground">
-                  Scanned Items ({items.length})
+                  Picked Items ({items.length})
                 </h3>
                 <div className="space-y-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
                   {items.map((item, index) => (
@@ -166,7 +166,7 @@ const ScanItemToInbound = () => {
                 onClick={handleCompleteOrder}
                 className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-accent hover:bg-accent/90 text-accent-foreground transition-smooth"
               >
-                Complete Order
+                Complete Pickup
               </Button>
             </div>
           </div>
@@ -181,7 +181,7 @@ const ScanItemToInbound = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Leave Scanning?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have {items.length} scanned item(s). Are you sure you want to go back? Your
+              You have {items.length} picked item(s). Are you sure you want to go back? Your
               progress will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -200,4 +200,4 @@ const ScanItemToInbound = () => {
   );
 };
 
-export default ScanItemToInbound;
+export default ScanItemToPickup;
