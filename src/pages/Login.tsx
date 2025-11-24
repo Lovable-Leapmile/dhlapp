@@ -5,20 +5,53 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import dhlLogo from "@/assets/dhl-logo.png";
 import { Warehouse } from "lucide-react";
+
 const Login = () => {
-  const [idNumber, setIdNumber] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const handleLogin = () => {
-    // Simple validation - only allow numbers
-    if (!/^\d+$/.test(idNumber) || idNumber.length === 0) {
-      toast.error("Please enter a valid identification number (numbers only)");
+
+  const handleLogin = async () => {
+    // Validate mobile number - must be at least 6 digits for password derivation
+    if (!/^\d+$/.test(mobileNumber) || mobileNumber.length < 6) {
+      toast.error("Please enter a valid mobile number (at least 6 digits)");
       return;
     }
 
-    // Store username in session
-    sessionStorage.setItem("username", idNumber);
-    toast.success("Login successful!");
-    navigate("/dashboard");
+    // Derive password from last 6 digits
+    const password = mobileNumber.slice(-6);
+
+    setIsLoading(true);
+    
+    try {
+      // Call validation API
+      const response = await fetch(
+        `https://robotmanagerv1test.qikpod.com/user/validate?user_phone=${mobileNumber}&password=${password}`,
+        {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.user_name) {
+        // Store user_name and auth token in session
+        sessionStorage.setItem("username", data.user_name);
+        sessionStorage.setItem("authToken", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkyMTY2MzgyNH0.hYv8hPzpQbGzAl0QXoIWddeF4gk9wPfPqwRMDTE4zas");
+        
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        toast.error("Invalid credentials. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Login failed. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -46,15 +79,28 @@ const Login = () => {
               Welcome Back
             </h2>
             <p className="text-center text-muted-foreground">
-              Scan Identification QR  
+              Enter your mobile number to continue
             </p>
           </div>
 
           <div className="space-y-4">
-            <Input type="text" placeholder="Scan Identification Number" value={idNumber} onChange={e => setIdNumber(e.target.value.replace(/\D/g, ""))} onKeyPress={handleKeyPress} className="h-12 sm:h-14 text-base sm:text-lg text-center bg-background border-border focus:border-accent focus:ring-accent" autoFocus />
+            <Input 
+              type="text" 
+              placeholder="Scan Mobile Number" 
+              value={mobileNumber} 
+              onChange={e => setMobileNumber(e.target.value.replace(/\D/g, ""))} 
+              onKeyPress={handleKeyPress} 
+              className="h-12 sm:h-14 text-base sm:text-lg text-center bg-background border-border focus:border-accent focus:ring-accent" 
+              autoFocus 
+              disabled={isLoading}
+            />
 
-            <Button onClick={handleLogin} className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-accent hover:bg-accent/90 text-accent-foreground transition-smooth">
-              Login
+            <Button 
+              onClick={handleLogin} 
+              className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-accent hover:bg-accent/90 text-accent-foreground transition-smooth"
+              disabled={isLoading}
+            >
+              {isLoading ? "Validating..." : "Login"}
             </Button>
           </div>
         </div>
