@@ -5,11 +5,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import dhlLogo from "@/assets/dhl-logo.png";
 import { Warehouse } from "lucide-react";
-
 const Login = () => {
   const [idNumber, setIdNumber] = useState("");
   const navigate = useNavigate();
-
   const handleLogin = () => {
     // Simple validation - only allow numbers
     if (!/^\d+$/.test(idNumber) || idNumber.length === 0) {
@@ -22,15 +20,12 @@ const Login = () => {
     toast.success("Login successful!");
     navigate("/dashboard");
   };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleLogin();
     }
   };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 bg-background">
+  return <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 bg-background">
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         {/* Logo */}
         <div className="text-center">
@@ -39,8 +34,8 @@ const Login = () => {
 
         {/* Illustration */}
         <div className="flex justify-center mb-8">
-          <div className="w-32 h-32 sm:w-40 sm:h-40 bg-accent/10 rounded-full flex items-center justify-center">
-            <Warehouse className="w-16 h-16 sm:w-20 sm:h-20 text-accent" />
+          <div className="w-28 h-28 sm:w-28 sm:h-40 bg-accent/10 rounded-full flex items-center justify-center">
+            <Warehouse className="w-15 h-14 sm:w-20 sm:h-20 text-accent" />
           </div>
         </div>
 
@@ -51,25 +46,14 @@ const Login = () => {
               Welcome Back
             </h2>
             <p className="text-center text-muted-foreground">
-              Enter your identification number to continue
+              Scan Identification QR  
             </p>
           </div>
 
           <div className="space-y-4">
-            <Input
-              type="text"
-              placeholder="Scan Identification Number"
-              value={idNumber}
-              onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ""))}
-              onKeyPress={handleKeyPress}
-              className="h-12 sm:h-14 text-base sm:text-lg text-center bg-background border-border focus:border-accent focus:ring-accent"
-              autoFocus
-            />
+            <Input type="text" placeholder="Scan Identification Number" value={idNumber} onChange={e => setIdNumber(e.target.value.replace(/\D/g, ""))} onKeyPress={handleKeyPress} className="h-12 sm:h-14 text-base sm:text-lg text-center bg-background border-border focus:border-accent focus:ring-accent" autoFocus />
 
-            <Button
-              onClick={handleLogin}
-              className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-accent hover:bg-accent/90 text-accent-foreground transition-smooth"
-            >
+            <Button onClick={handleLogin} className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-accent hover:bg-accent/90 text-accent-foreground transition-smooth">
               Login
             </Button>
           </div>
@@ -80,8 +64,6 @@ const Login = () => {
           Powered by <span className="font-medium text-foreground">leapmile</span> © 2025
         </p>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
