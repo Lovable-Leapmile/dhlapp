@@ -1,5 +1,6 @@
-import { Package } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import bin1 from "@/assets/bin1.png";
+import bin2 from "@/assets/bin2.png";
 
 interface BinCardProps {
   binId: string;
@@ -13,8 +14,12 @@ export const BinCard = ({ binId, itemCount, onClick }: BinCardProps) => {
       onClick={onClick}
       className="flex items-center gap-4 p-4 cursor-pointer transition-smooth active:scale-[0.98] bg-card border-border"
     >
-      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-accent/20 rounded-lg flex items-center justify-center">
-        <Package className="h-8 w-8 sm:h-10 sm:w-10 text-destructive" />
+      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-accent/20 rounded-lg flex items-center justify-center p-2">
+        <img 
+          src={itemCount > 0 ? bin1 : bin2} 
+          alt={itemCount > 0 ? "Bin with items" : "Empty bin"}
+          className="w-full h-full object-contain"
+        />
       </div>
       <div className="flex-1 text-left">
         <p className="text-sm text-muted-foreground">Bin ID</p>
