@@ -46,7 +46,7 @@ const Dashboard = () => {
                 <Card
                   key={card.title}
                   onClick={() => navigate(card.path)}
-                  className="p-8 sm:p-10 cursor-pointer transition-smooth hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] bg-accent/10 border-accent/20 animate-fade-in"
+                  className="p-8 sm:p-10 cursor-pointer transition-smooth hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] bg-card border-border animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
