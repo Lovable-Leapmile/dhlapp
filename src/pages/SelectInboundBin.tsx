@@ -64,11 +64,33 @@ const SelectInboundBin = () => {
 
         const data = await response.json();
         
-        // Map API response to bin format
-        const bins: Bin[] = data.data.map((tray: any) => ({
-          id: tray.tray_id,
-          itemCount: tray.total_item_quantity || 0,
-        }));
+        console.log("API Response:", data);
+        
+        // Map API response to bin format - handle different response structures
+        let bins: Bin[] = [];
+        
+        if (Array.isArray(data)) {
+          // If response is directly an array
+          bins = data.map((tray: any) => ({
+            id: tray.tray_id,
+            itemCount: tray.total_item_quantity || 0,
+          }));
+        } else if (data.data && Array.isArray(data.data)) {
+          // If response has a data property containing array
+          bins = data.data.map((tray: any) => ({
+            id: tray.tray_id,
+            itemCount: tray.total_item_quantity || 0,
+          }));
+        } else if (data.trays && Array.isArray(data.trays)) {
+          // If response has a trays property containing array
+          bins = data.trays.map((tray: any) => ({
+            id: tray.tray_id,
+            itemCount: tray.total_item_quantity || 0,
+          }));
+        } else {
+          console.error("Unexpected API response structure:", data);
+          throw new Error("Invalid response structure from API");
+        }
 
         setAllBins(bins);
       } catch (error) {
