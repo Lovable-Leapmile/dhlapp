@@ -18,13 +18,13 @@ const Dashboard = () => {
     {
       title: "Pickup",
       icon: PackageSearch,
-      path: "#",
+      path: "/pickup",
       description: "Process outbound items",
     },
     {
       title: "Admin",
       icon: Settings,
-      path: "#",
+      path: "/admin",
       description: "System configuration",
     },
   ];
@@ -45,15 +45,13 @@ const Dashboard = () => {
               return (
                 <Card
                   key={card.title}
-                  onClick={() => card.path !== "#" && navigate(card.path)}
-                  className={`p-8 sm:p-10 cursor-pointer transition-smooth hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] bg-card border-border ${
-                    card.path === "#" ? "opacity-50 cursor-not-allowed" : ""
-                  } animate-fade-in`}
+                  onClick={() => navigate(card.path)}
+                  className="p-8 sm:p-10 cursor-pointer transition-smooth hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] bg-accent/10 border-accent/20 animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-2xl flex items-center justify-center">
-                      <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-accent/20 rounded-2xl flex items-center justify-center">
+                      <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-destructive" />
                     </div>
                     <div>
                       <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">

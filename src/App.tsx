@@ -7,6 +7,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import SelectInboundBin from "./pages/SelectInboundBin";
 import ScanItemToInbound from "./pages/ScanItemToInbound";
+import Pickup from "./pages/Pickup";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inbound/select-bin" element={<SelectInboundBin />} />
           <Route path="/inbound/scan-items" element={<ScanItemToInbound />} />
+          <Route path="/pickup" element={<Pickup />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

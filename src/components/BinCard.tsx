@@ -11,10 +11,10 @@ export const BinCard = ({ binId, itemCount, onClick }: BinCardProps) => {
   return (
     <Card
       onClick={onClick}
-      className="flex items-center gap-4 p-4 cursor-pointer transition-smooth hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] bg-card border-border"
+      className="flex items-center gap-4 p-4 cursor-pointer transition-smooth hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] bg-accent/10 border-accent/20"
     >
-      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-muted rounded-lg flex items-center justify-center">
-        <Package className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
+      <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-accent/20 rounded-lg flex items-center justify-center">
+        <Package className="h-8 w-8 sm:h-10 sm:w-10 text-destructive" />
       </div>
       <div className="flex-1 text-left">
         <p className="text-sm text-muted-foreground">Bin ID</p>
