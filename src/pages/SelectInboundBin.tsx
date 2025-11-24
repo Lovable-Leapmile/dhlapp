@@ -74,34 +74,29 @@ const SelectInboundBin = () => {
               <Button
                 onClick={() => setIsSearchExpanded(true)}
                 variant="outline"
-                className="h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg border-accent/30 hover:border-accent hover:bg-accent/10 transition-smooth"
+                className="h-12 sm:h-14 w-12 sm:w-14 p-0"
               >
-                <Search className="mr-2 h-5 w-5 text-destructive" />
-                Search by Bin ID
+                <Search className="h-5 w-5" />
               </Button>
             ) : (
-              <div className="flex items-center gap-2 w-full animate-fade-in">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Type Bin ID..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-10 h-12 sm:h-14"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleClearSearch}
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
+              <div className="relative w-full">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Search className="h-5 w-5 text-muted-foreground" />
                 </div>
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search bin ID..."
+                  className="h-12 sm:h-14 pl-10 pr-10 text-base"
+                  autoFocus
+                />
+                <button
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
             )}
           </div>
