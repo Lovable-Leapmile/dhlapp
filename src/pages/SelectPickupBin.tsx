@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { BinCard } from "@/components/BinCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X, Filter, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +18,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface Bin {
+  id: string;
+  itemCount: number;
+}
+
 const SelectPickupBin = () => {
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
@@ -25,12 +31,56 @@ const SelectPickupBin = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "empty">("all");
+  const [allBins, setAllBins] = useState<Bin[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data - 50 bins with some empty ones
-  const allBins = Array.from({ length: 50 }, (_, i) => ({
-    id: `BIN-${String(i + 1).padStart(3, "0")}`,
-    itemCount: i % 5 === 0 ? 0 : Math.floor(Math.random() * 10) + 1,
-  }));
+  // Fetch bins from API
+  useEffect(() => {
+    const fetchBins = async () => {
+      const authToken = sessionStorage.getItem("authToken");
+      
+      if (!authToken) {
+        toast.error("Authentication token not found. Please login again.");
+        navigate("/");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          "https://robotmanagerv1test.qikpod.com/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=DESC",
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch bins");
+        }
+
+        const data = await response.json();
+        
+        // Map API response to bin format
+        const bins: Bin[] = data.data.map((tray: any) => ({
+          id: tray.tray_id,
+          itemCount: tray.total_item_quantity || 0,
+        }));
+
+        setAllBins(bins);
+      } catch (error) {
+        toast.error("Failed to load bins. Please try again.");
+        console.error("Error fetching bins:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBins();
+  }, [navigate]);
 
   // Filter bins based on search query and filter type
   let bins = searchQuery
@@ -114,29 +164,45 @@ const SelectPickupBin = () => {
           </Button>
         </div>
 
-        {/* Total Bins */}
-        <div className="mb-6 sm:mb-8">
-          <p className="text-center text-base sm:text-lg text-muted-foreground">
-            {bins.length} bins available
-          </p>
-        </div>
-
-        {/* Bins Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pb-6">
-          {bins.map((bin, index) => (
-            <div
-              key={bin.id}
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 30}ms` }}
-            >
-              <BinCard
-                binId={bin.id}
-                itemCount={bin.itemCount}
-                onClick={() => handleBinClick(bin.id)}
-              />
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-12 w-12 animate-spin text-accent mb-4" />
+            <p className="text-muted-foreground">Loading bins...</p>
+          </div>
+        ) : (
+          <>
+            {/* Total Bins */}
+            <div className="mb-6 sm:mb-8">
+              <p className="text-center text-base sm:text-lg text-muted-foreground">
+                {bins.length} bins available
+              </p>
             </div>
-          ))}
-        </div>
+
+            {/* Bins Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pb-6">
+              {bins.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No bins found</p>
+                </div>
+              ) : (
+                bins.map((bin, index) => (
+                  <div
+                    key={bin.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 30}ms` }}
+                  >
+                    <BinCard
+                      binId={bin.id}
+                      itemCount={bin.itemCount}
+                      onClick={() => handleBinClick(bin.id)}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </main>
 
       <Footer />
