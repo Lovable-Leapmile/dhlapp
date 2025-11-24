@@ -34,8 +34,8 @@ const Login = () => {
 
         {/* Illustration */}
         <div className="flex justify-center mb-8">
-          <div className="w-28 h-28 sm:w-28 sm:h-40 bg-accent/10 rounded-full flex items-center justify-center">
-            <Warehouse className="w-15 h-14 sm:w-20 sm:h-20 text-accent" />
+          <div className="w-28 h-28 sm:w-28 sm:h-28 bg-accent/10 rounded-full flex items-center justify-center">
+            <Warehouse className="w-15 h-14 sm:w-14 sm:h-14 text-accent" />
           </div>
         </div>
 
