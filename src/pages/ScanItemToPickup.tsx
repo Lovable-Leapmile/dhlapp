@@ -34,6 +34,9 @@ const ScanItemToPickup = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [trayStatus, setTrayStatus] = useState<string>("");
   const [orderRecord, setOrderRecord] = useState<any>(null);
+  const [pollingMode, setPollingMode] = useState<'inprogress' | 'ready_to_use' | 'stopped'>('inprogress');
+  const [countdown, setCountdown] = useState<number>(0);
+  const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [scannedItem, setScannedItem] = useState("");
   const [items, setItems] = useState<string[]>([]);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
@@ -41,67 +44,115 @@ const ScanItemToPickup = () => {
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
   useEffect(() => {
+    if (pollingMode === 'stopped') return;
+
     const checkTrayStatus = async () => {
       const authToken = sessionStorage.getItem("authToken");
       
       if (!authToken || !binId || !userId) {
         console.error("Missing required data for tray status check");
         setIsLoading(false);
+        setPollingMode('stopped');
         return;
       }
 
       try {
-        console.log("Checking tray status for:", { binId, userId });
+        console.log("Checking tray status for:", { binId, userId, mode: pollingMode });
         
-        const response = await fetch(
-          `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
-          {
-            method: 'GET',
-            headers: {
-              'accept': 'application/json',
-              'Authorization': `Bearer ${authToken}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Tray status response:", data);
-          
-          if (data.records && data.records.length > 0) {
-            const order = data.records[0];
-            setOrderRecord(order);
-            setTrayStatus(order.tray_status || "");
-            
-            if (order.tray_status !== "inprogress") {
-              setIsLoading(false);
+        if (pollingMode === 'inprogress') {
+          // Check inprogress status
+          const response = await fetch(
+            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+            {
+              method: 'GET',
+              headers: {
+                'accept': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+              },
             }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Inprogress status response:", data);
+            
+            if (data.records && data.records.length > 0) {
+              const order = data.records[0];
+              setOrderRecord(order);
+              setTrayStatus(order.tray_status || "");
+              
+              if (order.tray_status !== "inprogress") {
+                // Tray is no longer in progress, switch to ready_to_use polling
+                console.log("Tray no longer in progress, switching to ready_to_use polling");
+                setPollingMode('ready_to_use');
+              }
+            } else {
+              // No inprogress orders found, switch to ready_to_use polling
+              console.log("No inprogress orders found, switching to ready_to_use polling");
+              setPollingMode('ready_to_use');
+            }
+          } else if (response.status === 404) {
+            // No orders found, switch to ready_to_use polling
+            console.log("No orders found (404), switching to ready_to_use polling");
+            setPollingMode('ready_to_use');
           } else {
-            // No inprogress orders found - treat as ready
-            console.log("No inprogress orders found");
-            setIsLoading(false);
+            // Inprogress API failed, switch to ready_to_use polling
+            console.error("Inprogress API failed:", response.status, "switching to ready_to_use polling");
+            setPollingMode('ready_to_use');
           }
-        } else if (response.status === 404) {
-          // No orders found - treat as ready
-          console.log("No orders found (404)");
-          setIsLoading(false);
-        } else {
-          console.error("Failed to check tray status:", response.status);
-          setIsLoading(false);
+        } else if (pollingMode === 'ready_to_use') {
+          // Check tray_ready_to_use status - continue polling until API failure
+          const response = await fetch(
+            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+            {
+              method: 'GET',
+              headers: {
+                'accept': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Tray ready to use response:", data);
+            
+            // API returned success - show scanning section and keep polling
+            console.log("API returned success, showing scanning items section but keep polling until failure");
+            setOrderRecord(data.records && data.records.length > 0 ? data.records[0] : null);
+            setTrayStatus("tray_ready_to_use");
+            setIsLoading(false);
+            // Don't stop polling - continue to check for failure
+          } else {
+            // API returned failure - navigate to dashboard
+            console.log("API failed, navigating to dashboard");
+            setPollingMode('stopped');
+            navigate("/dashboard");
+            return;
+          }
         }
       } catch (error) {
         console.error("Error checking tray status:", error);
-        setIsLoading(false);
+        
+        if (pollingMode === 'inprogress') {
+          // Inprogress check failed, switch to ready_to_use polling
+          console.log("Inprogress check error, switching to ready_to_use polling");
+          setPollingMode('ready_to_use');
+        } else {
+          // tray_ready_to_use check failed - navigate to dashboard
+          console.log("Tray ready to use check error, navigating to dashboard");
+          setPollingMode('stopped');
+          navigate("/dashboard");
+          return;
+        }
       }
     };
 
-    checkTrayStatus();
-    
-    // Set up polling for tray status
-    const interval = setInterval(checkTrayStatus, 5000);
+    // Set up polling based on current mode
+    const interval = setInterval(checkTrayStatus, 3000); // Poll every 3 seconds
     
     return () => clearInterval(interval);
-  }, [binId, userId]);
+  }, [binId, userId, navigate, pollingMode]);
 
   useEffect(() => {
     if (notification) {
@@ -111,6 +162,53 @@ const ScanItemToPickup = () => {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!isCountdownActive || countdown <= 0) {
+      if (countdown <= 0 && isCountdownActive) {
+        // Countdown reached zero, navigate to dashboard
+        console.log("Countdown reached zero, navigating to dashboard");
+        setIsCountdownActive(false);
+        setPollingMode('stopped');
+        navigate("/dashboard");
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          setIsCountdownActive(false);
+          setPollingMode('stopped');
+          navigate("/dashboard");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isCountdownActive, countdown, navigate]);
+
+  // Start countdown when tray is ready and loading is false
+  useEffect(() => {
+    if (!isLoading && trayStatus === "tray_ready_to_use" && !isCountdownActive) {
+      const trayStayTime = sessionStorage.getItem("trayStayTime");
+      const minutes = parseInt(trayStayTime || "2");
+      const totalSeconds = minutes * 60;
+      console.log(`Starting countdown for ${minutes} minutes (${totalSeconds} seconds)`);
+      setCountdown(totalSeconds);
+      setIsCountdownActive(true);
+    }
+  }, [isLoading, trayStatus, isCountdownActive]);
+
+  // Format countdown time
+  const formatCountdown = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   const handleScan = async (value: string) => {
     if (value.trim() === "") return;
@@ -128,8 +226,8 @@ const ScanItemToPickup = () => {
     }
 
     try {
-      // Patch order to keep it active/updated
-      await fetch(
+      // Patch order to update and reset timer
+      const patchResponse = await fetch(
         `https://robotmanagerv1test.qikpod.com/nanostore/orders?record_id=${orderRecord.id}`,
         {
           method: 'PATCH',
@@ -138,13 +236,33 @@ const ScanItemToPickup = () => {
             'Authorization': `Bearer ${authToken}`,
             'Content-Type': 'application/json',
           },
-          body: '{}',
+          body: JSON.stringify({
+            user_id: userId
+          }),
         }
       );
 
+      if (patchResponse.ok) {
+        const patchData = await patchResponse.json();
+        console.log("Order patch response:", patchData);
+        
+        // Update order record with new data
+        if (patchData.id) {
+          setOrderRecord(patchData);
+        }
+        
+        // Reset countdown timer
+        const trayStayTime = sessionStorage.getItem("trayStayTime");
+        const minutes = parseInt(trayStayTime || "2");
+        const totalSeconds = minutes * 60;
+        console.log(`Resetting countdown to ${minutes} minutes (${totalSeconds} seconds)`);
+        setCountdown(totalSeconds);
+        setIsCountdownActive(true);
+      }
+
       // Create transaction
       const transactionResponse = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value.toLowerCase()}&transaction_item_quantity=1&transaction_type=outbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
+        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value.toLowerCase()}&transaction_item_quantity=-1&transaction_type=outbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
         {
           method: 'POST',
           headers: {
@@ -179,11 +297,6 @@ const ScanItemToPickup = () => {
   };
 
   const handleCompleteOrder = async () => {
-    if (items.length === 0) {
-      setNotification({ type: 'error', message: 'Please scan at least one item' });
-      return;
-    }
-
     const authToken = sessionStorage.getItem("authToken");
     if (!authToken || !orderRecord?.id) {
       setNotification({ type: 'error', message: 'Order information missing' });
@@ -205,11 +318,11 @@ const ScanItemToPickup = () => {
       if (response.ok) {
         setShowCompleteDialog(true);
       } else {
-        setNotification({ type: 'error', message: 'Failed to complete pickup' });
+        setNotification({ type: 'error', message: 'Failed to complete order' });
       }
     } catch (error) {
-      console.error('Error completing pickup:', error);
-      setNotification({ type: 'error', message: 'Failed to complete pickup' });
+      console.error('Error completing order:', error);
+      setNotification({ type: 'error', message: 'Failed to complete order' });
     }
   };
 
@@ -252,6 +365,15 @@ const ScanItemToPickup = () => {
                 Selected Bin
               </h3>
               <BinCard binId={binId} itemCount={3} />
+              
+              {/* Countdown Timer */}
+              {isCountdownActive && countdown > 0 && (
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm font-medium text-amber-800">
+                    Tray will release automatically in {formatCountdown(countdown)}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Scan Input */}

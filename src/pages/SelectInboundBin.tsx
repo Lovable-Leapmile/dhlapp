@@ -167,6 +167,7 @@ const SelectInboundBin = () => {
       sessionStorage.setItem("currentOrderId", orderData.id?.toString() || "");
       sessionStorage.setItem("currentTrayId", selectedBin);
       sessionStorage.setItem("currentUserId", userId);
+      sessionStorage.setItem("trayStayTime", trayStayTime.toString());
       
       toast.success("Order created successfully!");
       navigate("/inbound/scan-items", { state: { binId: selectedBin, orderId: orderData.id } });

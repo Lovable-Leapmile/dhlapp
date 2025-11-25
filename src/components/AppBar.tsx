@@ -61,15 +61,26 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
                 )}
+                {/* Hidden spacer button for centering when no back button */}
+                {!showBack && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled
+                    className="opacity-0 pointer-events-none invisible"
+                  >
+                    <ArrowLeft className="h-5 w-5 opacity-0" />
+                  </Button>
+                )}
               </div>
 
               {/* Center - Title */}
               <div className="flex-1 text-center">
                 <div className="flex items-center justify-center gap-2">
                   {showHomeIcon && (
-                    <Home className="h-5 w-5 sm:h-6 sm:w-6 text-destructive" />
+                    <Home className="h-5 w-5 sm:h-6 sm:w-6 text-destructive flex-shrink-0" />
                   )}
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground leading-none">
                     {title}
                   </h1>
                 </div>

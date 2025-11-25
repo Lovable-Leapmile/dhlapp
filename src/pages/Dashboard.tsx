@@ -22,6 +22,12 @@ const Dashboard = () => {
       description: "Process outbound items",
     },
     {
+      title: "Station View",
+      icon: Settings,
+      path: "/station-view",
+      description: "Check station status",
+    },
+    {
       title: "Admin",
       icon: Settings,
       path: "/admin",

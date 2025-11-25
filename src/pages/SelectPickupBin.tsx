@@ -167,6 +167,7 @@ const SelectPickupBin = () => {
       sessionStorage.setItem("currentOrderId", orderData.id?.toString() || "");
       sessionStorage.setItem("currentTrayId", selectedBin);
       sessionStorage.setItem("currentUserId", userId);
+      sessionStorage.setItem("trayStayTime", trayStayTime.toString());
       
       toast.success("Order created successfully!");
       navigate("/pickup/scan-items", { state: { binId: selectedBin, orderId: orderData.id } });

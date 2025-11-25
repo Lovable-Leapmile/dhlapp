@@ -10,6 +10,7 @@ import ScanItemToInbound from "./pages/ScanItemToInbound";
 import Pickup from "./pages/Pickup";
 import SelectPickupBin from "./pages/SelectPickupBin";
 import ScanItemToPickup from "./pages/ScanItemToPickup";
+import StationView from "./pages/StationView";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/pickup" element={<Pickup />} />
           <Route path="/pickup/select-bin" element={<SelectPickupBin />} />
           <Route path="/pickup/scan-items" element={<ScanItemToPickup />} />
+          <Route path="/station-view" element={<StationView />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
