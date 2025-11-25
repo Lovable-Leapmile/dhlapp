@@ -6,13 +6,14 @@ interface BinCardProps {
   binId: string;
   itemCount: number;
   onClick?: () => void;
+  isSelected?: boolean;
 }
 
-export const BinCard = ({ binId, itemCount, onClick }: BinCardProps) => {
+export const BinCard = ({ binId, itemCount, onClick, isSelected = false }: BinCardProps) => {
   return (
     <Card
       onClick={onClick}
-      className="flex items-center gap-2 sm:gap-3 p-3 cursor-pointer transition-smooth active:scale-[0.98] bg-card border-border"
+      className={`flex items-center gap-2 sm:gap-3 p-3 cursor-pointer transition-smooth active:scale-[0.98] bg-card border-2 ${isSelected ? 'border-primary' : 'border-border'}`}
     >
       <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-accent/20 rounded-lg flex items-center justify-center p-1.5 sm:p-2">
         <img 
