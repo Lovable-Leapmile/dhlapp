@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { BinCard } from "@/components/BinCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Search, X, Filter, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -28,6 +29,8 @@ const SelectPickupBin = () => {
   const username = sessionStorage.getItem("username") || "Guest";
   const [selectedBin, setSelectedBin] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [trayStayTime, setTrayStayTime] = useState(2);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "empty">("all");
@@ -126,9 +129,53 @@ const SelectPickupBin = () => {
     setShowConfirm(true);
   };
 
-  const handleConfirm = () => {
-    if (selectedBin) {
-      navigate("/pickup/scan-items", { state: { binId: selectedBin } });
+  const handleConfirm = async () => {
+    if (!selectedBin) return;
+    
+    const authToken = sessionStorage.getItem("authToken");
+    const userId = sessionStorage.getItem("userId");
+    
+    if (!authToken || !userId) {
+      toast.error("Authentication required. Please login again.");
+      navigate("/");
+      return;
+    }
+
+    setIsCreatingOrder(true);
+    
+    try {
+      const response = await fetch(
+        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${selectedBin}&user_id=${userId}&auto_complete_time=${trayStayTime}`,
+        {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Order creation error:", errorText);
+        throw new Error(`Failed to create order: ${response.status}`);
+      }
+
+      const orderData = await response.json();
+      
+      // Store order info in session for scan items page
+      sessionStorage.setItem("currentOrderId", orderData.id?.toString() || "");
+      sessionStorage.setItem("currentTrayId", selectedBin);
+      sessionStorage.setItem("currentUserId", userId);
+      
+      toast.success("Order created successfully!");
+      navigate("/pickup/scan-items", { state: { binId: selectedBin, orderId: orderData.id } });
+    } catch (error) {
+      toast.error("Failed to create order. Please try again.");
+      console.error("Error creating order:", error);
+    } finally {
+      setIsCreatingOrder(false);
+      setShowConfirm(false);
     }
   };
 
@@ -239,20 +286,37 @@ const SelectPickupBin = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Bin Selection</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have selected <strong>{selectedBin}</strong> for pickup. Do you want to
-              proceed?
+            <AlertDialogDescription className="space-y-4">
+              <div>
+                You have selected <strong>{selectedBin}</strong> for pickup. 
+                Please confirm the tray stay time at station.
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tray-stay-time" className="text-sm font-medium">
+                  Enter tray stay time at station (in minutes)
+                </Label>
+                <Input
+                  id="tray-stay-time"
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={trayStayTime}
+                  onChange={(e) => setTrayStayTime(parseInt(e.target.value) || 2)}
+                  className="w-full h-10"
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedBin(null)}>
+            <AlertDialogCancel onClick={() => setSelectedBin(null)} disabled={isCreatingOrder}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              disabled={isCreatingOrder}
             >
-              Confirm
+              {isCreatingOrder ? "Creating Order..." : "Confirm"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

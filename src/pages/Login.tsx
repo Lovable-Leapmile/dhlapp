@@ -38,8 +38,9 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok && data.user_name) {
-        // Store user_name and auth token in session
+        // Store user info and auth token in session
         sessionStorage.setItem("username", data.user_name);
+        sessionStorage.setItem("userId", data.user_id?.toString() || "");
         sessionStorage.setItem("authToken", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkyMTY2MzgyNH0.hYv8hPzpQbGzAl0QXoIWddeF4gk9wPfPqwRMDTE4zas");
         
         toast.success("Login successful!");
