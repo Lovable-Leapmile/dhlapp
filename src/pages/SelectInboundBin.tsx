@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
@@ -6,7 +6,7 @@ import { BinCard } from "@/components/BinCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, X, Filter, Loader2 } from "lucide-react";
+import { Search, X, Filter, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -36,6 +36,7 @@ const SelectInboundBin = () => {
   const [filterType, setFilterType] = useState<"all" | "empty">("all");
   const [allBins, setAllBins] = useState<Bin[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch bins from API
   useEffect(() => {
@@ -180,6 +181,12 @@ const SelectInboundBin = () => {
     }
   };
 
+  const handleTimeChange = (value: number) => {
+    if (value >= 1 && value <= 60) {
+      setTrayStayTime(value);
+    }
+  };
+
   const handleClearSearch = () => {
     setSearchQuery("");
     setIsSearchExpanded(false);
@@ -282,35 +289,71 @@ const SelectInboundBin = () => {
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Bin Selection</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-4">
-              <div>
-                You have selected bin <span className="font-semibold">{selectedBin}</span>. 
-                Please confirm the tray stay time at station.
+        <AlertDialogContent className="max-w-md w-full">
+          <AlertDialogHeader className="text-center">
+            <AlertDialogTitle className="text-center">Confirm Bin Selection</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 text-center">
+              <div className="flex justify-center">
+                <div className="w-full max-w-none">
+                  <BinCard binId={selectedBin || ""} itemCount={0} onClick={() => {}} />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="tray-stay-time" className="text-sm font-medium">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-center block">
                   Enter tray stay time at station (in minutes)
                 </Label>
-                <Input
-                  id="tray-stay-time"
-                  type="number"
-                  min="1"
-                  max="60"
-                  value={trayStayTime}
-                  onChange={(e) => setTrayStayTime(parseInt(e.target.value) || 2)}
-                  className="w-full h-10"
-                />
+                
+                {/* Arrow Number Picker */}
+                <div className="flex items-center justify-center gap-4 py-4">
+                  {/* Left Arrow */}
+                  <button
+                    onClick={() => handleTimeChange(trayStayTime - 1)}
+                    disabled={trayStayTime <= 1}
+                    className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                  
+                  {/* Number Display with Time Icon and Min Label */}
+                  <div className="flex flex-col items-center justify-center">
+                    {/* Time Icon */}
+                    <Clock className="h-6 w-6 text-accent mb-1" />
+                    
+                    {/* Number Display */}
+                    <div className="relative w-28 h-28 flex items-center justify-center">
+                      <div className="text-5xl font-bold text-accent">
+                        {trayStayTime}
+                      </div>
+                    </div>
+                    
+                    {/* Min Label */}
+                    <div className="mt-0 px-3 py-1 bg-accent text-white rounded-full text-sm font-medium">
+                      min
+                    </div>
+                  </div>
+                  
+                  {/* Right Arrow */}
+                  <button
+                    onClick={() => handleTimeChange(trayStayTime + 1)}
+                    disabled={trayStayTime >= 60}
+                    className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isCreatingOrder}>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel 
+              disabled={isCreatingOrder}
+              className="flex-1 h-11"
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              className="flex-1 h-11 bg-accent hover:bg-accent/90 text-accent-foreground"
               disabled={isCreatingOrder}
             >
               {isCreatingOrder ? "Creating Order..." : "Confirm"}
