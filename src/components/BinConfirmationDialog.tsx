@@ -1,3 +1,7 @@
+3
+SelectInboundBin.tsx:140 Missing auth token or user ID
+handleConfirmBinSelection	@	SelectInboundBin.tsx:140
+handleConfirm	@	BinConfirmationDialog.tsx:41
 import { useState } from "react";
 import { BinCard } from "./BinCard";
 import { Button } from "./ui/button";
