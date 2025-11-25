@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { BinCard } from "@/components/BinCard";
@@ -7,7 +7,7 @@ import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Barcode } from "lucide-react";
+import { Barcode } from "lucide-react";
 import { toast } from "sonner";
 import robotAnimation from "@/assets/robot-bin-animation.gif";
 import {
@@ -21,144 +21,29 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface TrayStatusResponse {
-  records: Array<{
-    tray_id: string;
-    tray_status: string;
-  }>;
-}
-
 const VALID_ITEMS = ["item1", "item2", "item3", "item4", "item5"];
 
 const ScanItemToInbound = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
-  const binId = location.state?.binId || "";
-  const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
-  const USER_ID = "1";
+  const binId = location.state?.binId || "Unknown";
 
   const [isLoading, setIsLoading] = useState(true);
-  const [trayStatus, setTrayStatus] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string>("");
   const [scannedItem, setScannedItem] = useState("");
   const [items, setItems] = useState<string[]>([]);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
-  // Fetch order ID from API
-  const fetchOrderId = async () => {
-    try {
-      const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&user_id=${USER_ID}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
-        {
-          method: 'GET',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Bearer ${AUTH_TOKEN}`,
-          }
-        }
-      );
-
-      if (!response.ok) {
-        console.error("Failed to fetch order ID:", response.status);
-        return;
-      }
-
-      const data = await response.json();
-      if (data.records && data.records.length > 0) {
-        setOrderId(data.records[0].id.toString());
-        console.log("Order ID fetched:", data.records[0].id);
-      }
-    } catch (error) {
-      console.error("Error fetching order ID:", error);
-    }
-  };
-
-  // Check tray status periodically
   useEffect(() => {
-    if (!binId) {
-      toast.error("Invalid bin selection. Please try again.");
-      navigate("/inbound/select-bin");
-      return;
-    }
+    // Simulate robot retrieving bin
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 10000);
 
-    const checkTrayStatus = async () => {
-      try {
-        // First check for inprogress status
-        const response = await fetch(
-          `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${USER_ID}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
-          {
-            method: 'GET',
-            headers: {
-              'accept': 'application/json',
-              'Authorization': `Bearer ${AUTH_TOKEN}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data: TrayStatusResponse = await response.json();
-          
-          if (data.records && data.records.length > 0) {
-            setTrayStatus(data.records[0].tray_status);
-            
-            // Only show loading if tray is in progress
-            if (data.records[0].tray_status === "inprogress") {
-              setIsLoading(true);
-            } else {
-              // Tray is not in progress, ready for scanning
-              setIsLoading(false);
-            }
-            return;
-          }
-        }
-
-        // If no inprogress records found, check for failure status
-        const failureResponse = await fetch(
-          `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=failure&user_id=${USER_ID}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
-          {
-            method: 'GET',
-            headers: {
-              'accept': 'application/json',
-              'Authorization': `Bearer ${AUTH_TOKEN}`,
-            },
-          }
-        );
-
-        if (failureResponse.ok) {
-          const failureData: TrayStatusResponse = await failureResponse.json();
-          
-          if (failureData.records && failureData.records.length > 0) {
-            setTrayStatus("failure");
-            setIsLoading(false); // Show scan items for failure status
-            return;
-          }
-        }
-
-        // If no specific status found, show scan items by default
-        setIsLoading(false);
-        setTrayStatus(null);
-        
-      } catch (error) {
-        console.error("Error checking tray status:", error);
-        // Don't show toast error to user, just log it
-        setIsLoading(false);
-        setTrayStatus(null);
-      }
-    };
-
-    // Initial check
-    checkTrayStatus();
-    fetchOrderId(); // Fetch the order ID
-
-    // Set up polling every 5 seconds
-    const intervalId = setInterval(checkTrayStatus, 5000);
-
-    // Clean up interval on unmount
-    return () => clearInterval(intervalId);
-  }, [binId, AUTH_TOKEN, USER_ID, navigate]);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (notification) {
@@ -169,61 +54,16 @@ const ScanItemToInbound = () => {
     }
   }, [notification]);
 
-  const handleScan = async (item: string) => {
-    if (!item.trim()) return;
+  const handleScan = (value: string) => {
+    if (value.trim() === "") return;
 
-    if (!orderId) {
-      setNotification({ type: 'error', message: 'Order ID not found. Please try again.' });
-      return;
-    }
-
-    try {
-      // First, update the order with PATCH
-      const patchResponse = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?record_id=${orderId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Bearer ${AUTH_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: '{}'
-        }
-      );
-
-      if (!patchResponse.ok) {
-        console.error("Failed to update order:", patchResponse.status);
-        // Continue with transaction even if patch fails
-      }
-
-      // Then, create the transaction with POST
-      const currentDate = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      const postResponse = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?order_id=${orderId}&item_id=${item}&transaction_item_quantity=1&transaction_type=inbound&transaction_date=${currentDate}`,
-        {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Bearer ${AUTH_TOKEN}`,
-          }
-        }
-      );
-
-      if (!postResponse.ok) {
-        throw new Error(`Failed to create transaction: ${postResponse.status}`);
-      }
-
-      const transactionData = await postResponse.json();
-      console.log("Transaction created successfully:", transactionData);
-
-      // Add item to the list
-      setItems((prev) => [...prev, item]);
+    if (VALID_ITEMS.includes(value.toLowerCase())) {
+      setItems((prev) => [...prev, value]);
       setScannedItem("");
-      setNotification({ type: 'success', message: `Item ${item} scanned successfully` });
-    } catch (error) {
-      console.error("Error scanning item:", error);
-      setNotification({ type: 'error', message: 'Failed to scan item. Please try again.' });
+      setNotification({ type: 'success', message: 'Item added successfully' });
+    } else {
+      setScannedItem("");
+      setNotification({ type: 'error', message: "Item didn't added, invalid item" });
     }
   };
 
@@ -238,42 +78,12 @@ const ScanItemToInbound = () => {
     toast.info("Item removed");
   };
 
-  const handleCompleteOrder = async () => {
+  const handleCompleteOrder = () => {
     if (items.length === 0) {
       setNotification({ type: 'error', message: 'Please scan at least one item' });
       return;
     }
-    
-    if (!orderId) {
-      setNotification({ type: 'error', message: 'Order ID not found. Please try again.' });
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders/complete?record_id=${orderId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Bearer ${AUTH_TOKEN}`,
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to complete order: ${response.status}`);
-      }
-
-      const responseData = await response.json();
-      console.log("Order completed successfully:", responseData);
-      
-      toast.success("Order completed successfully!");
-      navigate("/inbound/select-bin");
-    } catch (error) {
-      console.error("Error completing order:", error);
-      setNotification({ type: 'error', message: 'Failed to complete order. Please try again.' });
-    }
+    setShowCompleteDialog(true);
   };
 
   const handleBack = () => {
@@ -288,7 +98,7 @@ const ScanItemToInbound = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <AppBar title="Scan Item to Inbound" showBack username={username} onBack={handleBack} />
 
-      {isLoading && (!trayStatus || trayStatus === "inprogress") ? (
+      {isLoading ? (
         <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex items-center justify-center">
           <div className="text-center space-y-6 animate-fade-in">
             <img
@@ -298,10 +108,10 @@ const ScanItemToInbound = () => {
             />
             <div className="space-y-2">
               <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                Retrieving Bin...
+                Retrieving Bin {binId}
               </h3>
               <p className="text-base sm:text-lg text-muted-foreground">
-                Robot is delivering the bin to the station...
+                Robot is delivering the bin to the inbound station...
               </p>
             </div>
           </div>

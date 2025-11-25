@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { BinCard } from "@/components/BinCard";
-import { BinConfirmationDialog } from "@/components/BinConfirmationDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, X, Filter, Loader2 } from "lucide-react";
@@ -27,24 +26,28 @@ interface Bin {
 const SelectInboundBin = () => {
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
+  const [selectedBin, setSelectedBin] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "empty">("all");
   const [allBins, setAllBins] = useState<Bin[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Fetch bins from API
   useEffect(() => {
     const fetchBins = async () => {
-      // Hardcoded values from the provided curl example
-      const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
+      const authToken = sessionStorage.getItem("authToken");
+      
+      if (!authToken) {
+        toast.error("Authentication token not found. Please login again.");
+        navigate("/");
+        return;
+      }
 
       try {
         setIsLoading(true);
-        console.log("Fetching bins with hardcoded token");
+        console.log("Fetching bins with token:", authToken);
         
         const response = await fetch(
           "https://robotmanagerv1test.qikpod.com/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=ASC",
@@ -52,7 +55,7 @@ const SelectInboundBin = () => {
             method: "GET",
             headers: {
               accept: "application/json",
-              Authorization: `Bearer ${AUTH_TOKEN}`,
+              Authorization: `Bearer ${authToken}`,
             },
           }
         );
@@ -104,71 +107,28 @@ const SelectInboundBin = () => {
     };
 
     fetchBins();
-  }, []);
+  }, [navigate]);
 
   // Filter bins based on search query and filter type
-  let bins = allBins.filter(bin => {
-    const matchesSearch = searchQuery 
-      ? bin.id.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
-    const matchesFilter = filterType === "empty" 
-      ? bin.itemCount === 0 
-      : true;
-    return matchesSearch && matchesFilter;
-  });
+  let bins = searchQuery
+    ? allBins.filter((bin) =>
+        bin.id.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : allBins;
 
-  const handleBinClick = (bin: Bin) => {
-    setSelectedBin(bin);
-    setShowConfirmation(true);
+  // Apply empty filter
+  if (filterType === "empty") {
+    bins = bins.filter((bin) => bin.itemCount === 0);
+  }
+
+  const handleBinClick = (binId: string) => {
+    setSelectedBin(binId);
+    setShowConfirm(true);
   };
 
-  const handleConfirmBinSelection = async (stayTime: number) => {
-    if (!selectedBin) return;
-    
-    setIsProcessing(true);
-    
-    // Hardcoded values from the provided curl example
-    const AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
-    const USER_ID = "1"; // From the example response
-
-    try {
-      console.log("Creating order with hardcoded credentials:", {
-        tray_id: selectedBin.id,
-        user_id: USER_ID,
-        auto_complete_time: stayTime
-      });
-
-      const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${selectedBin.id}&user_id=${USER_ID}&auto_complete_time=${stayTime}`,
-        {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'Authorization': `Bearer ${AUTH_TOKEN}`,
-          }
-        }
-      );
-
-      const responseData = await response.json();
-      console.log("API Response:", responseData);
-
-      if (!response.ok) {
-        throw new Error(`Failed to confirm bin selection: ${response.status} - ${JSON.stringify(responseData)}`);
-      }
-
-      // Navigate to scan items page with the selected bin
-      navigate("/inbound/scan-items", { 
-        state: { 
-          binId: selectedBin.id,
-          orderId: responseData.id // Assuming the API returns an order ID
-        } 
-      });
-    } catch (error) {
-      console.error("Error confirming bin selection:", error);
-      toast.error("Failed to confirm bin selection. Please check your connection and try again.");
-    } finally {
-      setIsProcessing(false);
-      setShowConfirmation(false);
+  const handleConfirm = () => {
+    if (selectedBin) {
+      navigate("/inbound/scan-items", { state: { binId: selectedBin } });
     }
   };
 
@@ -260,8 +220,7 @@ const SelectInboundBin = () => {
                     <BinCard
                       binId={bin.id}
                       itemCount={bin.itemCount}
-                      onClick={() => handleBinClick(bin)}
-                      isSelected={selectedBin?.id === bin.id}
+                      onClick={() => handleBinClick(bin.id)}
                     />
                   </div>
                 ))
@@ -272,18 +231,28 @@ const SelectInboundBin = () => {
       </main>
 
       <Footer />
-      
-      {selectedBin && (
-        <BinConfirmationDialog
-          isOpen={showConfirmation}
-          onClose={() => setShowConfirmation(false)}
-          onConfirm={handleConfirmBinSelection}
-          bin={{
-            binId: selectedBin.id,
-            itemCount: selectedBin.itemCount
-          }}
-        />
-      )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Bin Selection</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have selected bin <span className="font-semibold">{selectedBin}</span>. Do you
+              want to proceed with scanning items for this bin?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirm}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            >
+              Proceed
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
