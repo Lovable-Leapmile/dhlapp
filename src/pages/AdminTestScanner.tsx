@@ -29,7 +29,7 @@ const AdminTestScanner = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AppBar title="Test Scanner" />
+      <AppBar title="Test Scanner" showBack />
       
       <main className="flex-1 px-6 py-8 pb-24 overflow-y-auto">
         {/* Item ID Input */}
@@ -38,8 +38,8 @@ const AdminTestScanner = () => {
           <Input
             id="itemId"
             value={itemId}
-            readOnly
-            placeholder="Scanned value will appear here"
+            onChange={(e) => setItemId(e.target.value)}
+            placeholder="Enter or scan item ID"
             className="text-base"
           />
         </div>
