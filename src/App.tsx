@@ -16,6 +16,7 @@ import AdminUsers from "./pages/AdminUsers";
 import AdminBins from "./pages/AdminBins";
 import AdminAddProduct from "./pages/AdminAddProduct";
 import AdminHistory from "./pages/AdminHistory";
+import AdminTestScanner from "./pages/AdminTestScanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/admin/bins" element={<AdminBins />} />
           <Route path="/admin/add-product" element={<AdminAddProduct />} />
           <Route path="/admin/history" element={<AdminHistory />} />
+          <Route path="/admin/test-scanner" element={<AdminTestScanner />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
