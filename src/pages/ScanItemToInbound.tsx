@@ -38,7 +38,7 @@ const ScanItemToInbound = () => {
   const [countdown, setCountdown] = useState<number>(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [scannedItem, setScannedItem] = useState("");
-  const [items, setItems] = useState<{ id: number; item_id: string }[]>([]);
+  const [items, setItems] = useState<{ id: number; item_id: string; transaction_type?: string }[]>([]);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
@@ -98,9 +98,40 @@ const ScanItemToInbound = () => {
             console.log("No orders found (404), switching to ready_to_use polling");
             setPollingMode('ready_to_use');
           } else {
-            // Inprogress API failed, switch to ready_to_use polling
-            console.error("Inprogress API failed:", response.status, "switching to ready_to_use polling");
-            setPollingMode('ready_to_use');
+            // Inprogress API failed, immediately check tray_ready_to_use API
+            console.error("Inprogress API failed:", response.status, "immediately checking tray_ready_to_use API");
+            
+            try {
+              const readyResponse = await fetch(
+                `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+                {
+                  method: 'GET',
+                  headers: {
+                    'accept': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                  },
+                }
+              );
+
+              if (readyResponse.ok) {
+                const readyData = await readyResponse.json();
+                console.log("Tray ready to use response (immediate):", readyData);
+                
+                // API returned success - show scanning section
+                setOrderRecord(readyData.records && readyData.records.length > 0 ? readyData.records[0] : null);
+                setTrayStatus("tray_ready_to_use");
+                setIsLoading(false);
+                setPollingMode('ready_to_use');
+              } else {
+                // tray_ready_to_use API also failed - switch to ready_to_use polling for retry
+                console.log("Tray ready to use API also failed, switching to ready_to_use polling");
+                setPollingMode('ready_to_use');
+              }
+            } catch (readyError) {
+              console.error("Error checking tray_ready_to_use immediately:", readyError);
+              // Switch to ready_to_use polling for retry
+              setPollingMode('ready_to_use');
+            }
           }
         } else if (pollingMode === 'ready_to_use') {
           // Check tray_ready_to_use status - continue polling until API failure
@@ -137,9 +168,40 @@ const ScanItemToInbound = () => {
         console.error("Error checking tray status:", error);
         
         if (pollingMode === 'inprogress') {
-          // Inprogress check failed, switch to ready_to_use polling
-          console.log("Inprogress check error, switching to ready_to_use polling");
-          setPollingMode('ready_to_use');
+          // Inprogress check failed, immediately check tray_ready_to_use API
+          console.log("Inprogress check error, immediately checking tray_ready_to_use API");
+          
+          try {
+            const readyResponse = await fetch(
+              `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+              {
+                method: 'GET',
+                headers: {
+                  'accept': 'application/json',
+                  'Authorization': `Bearer ${authToken}`,
+                },
+              }
+            );
+
+            if (readyResponse.ok) {
+              const readyData = await readyResponse.json();
+              console.log("Tray ready to use response (immediate from error):", readyData);
+              
+              // API returned success - show scanning section
+              setOrderRecord(readyData.records && readyData.records.length > 0 ? readyData.records[0] : null);
+              setTrayStatus("tray_ready_to_use");
+              setIsLoading(false);
+              setPollingMode('ready_to_use');
+            } else {
+              // tray_ready_to_use API also failed - switch to ready_to_use polling for retry
+              console.log("Tray ready to use API also failed from error, switching to ready_to_use polling");
+              setPollingMode('ready_to_use');
+            }
+          } catch (readyError) {
+            console.error("Error checking tray_ready_to_use immediately from error:", readyError);
+            // Switch to ready_to_use polling for retry
+            setPollingMode('ready_to_use');
+          }
         } else {
           // tray_ready_to_use check failed - navigate to dashboard
           console.log("Tray ready to use check error, navigating to dashboard");
@@ -218,12 +280,19 @@ const ScanItemToInbound = () => {
         if (data.records) {
           setItems(data.records.map((record: any) => ({
             id: record.id,
-            item_id: record.item_id
+            item_id: record.item_id,
+            transaction_type: record.transaction_type
           })));
         }
       }
     } catch (error) {
       console.error('Error fetching scanned items:', error);
+      // Clear scanned items list and cache values when API fails
+      setItems([]);
+      sessionStorage.removeItem('currentOrderId');
+      sessionStorage.removeItem('currentTrayId');
+      sessionStorage.removeItem('currentUserId');
+      sessionStorage.removeItem('trayStayTime');
     }
   };
 
@@ -364,9 +433,17 @@ const ScanItemToInbound = () => {
       );
 
       if (response.ok) {
-        // Refresh the scanned items list
-        await fetchScannedItems();
+        // Immediately remove the item from local state
+        setItems(prevItems => prevItems.filter(item => item.id !== itemToDelete.id));
         setNotification({ type: 'success', message: 'Item removed successfully' });
+        
+        // Try to refresh the list, but don't rely on it for immediate UI update
+        try {
+          await fetchScannedItems();
+        } catch (refreshError) {
+          console.error('Error refreshing list after delete:', refreshError);
+          // List is already updated locally, so no need to show error to user
+        }
       } else {
         setNotification({ type: 'error', message: 'Failed to remove item' });
       }
@@ -498,14 +575,14 @@ const ScanItemToInbound = () => {
                 </div>
                 <div className="space-y-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
                   {items.map((item) => (
-                    <ItemCard key={item.id} itemId={item.item_id} onRemove={() => handleRemoveItem(item)} />
+                    <ItemCard key={item.id} itemId={item.item_id} transactionType={item.transaction_type} onRemove={() => handleRemoveItem(item)} />
                   ))}
                 </div>
               </div>
             )}
 
             {/* Complete Button */}
-            <div className="sticky bottom-0 pt-4 pb-2 bg-background">
+            <div className="sticky bottom-0 pt-4 pb-6 bg-background">
               <Button
                 onClick={handleCompleteOrder}
                 className="w-full h-12 sm:h-14 text-base sm:text-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-smooth"

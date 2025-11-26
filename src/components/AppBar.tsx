@@ -44,10 +44,19 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
 
   return (
     <>
-      <header className="bg-yellow-400 shadow-soft sticky top-0 z-50 border-b-2 border-red-600">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col py-4 gap-3">
-            {/* Top section - Title and Logout */}
+      <header className="bg-yellow-400 shadow-soft sticky top-0 z-50 border-b-2 border-red-600 safe-area-top">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 safe-area-left safe-area-right">
+          <div className="flex flex-col gap-3">
+            {/* Top section - User ID */}
+            <div className="flex justify-center">
+              <div className="bg-white/50 px-6 py-2 rounded-full">
+                <p className="text-xs sm:text-sm font-normal text-black">
+                  User – {username}
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom section - Title and Icons */}
             <div className="flex items-center justify-between">
               {/* Left - Back button */}
               <div className="flex items-center gap-3">
@@ -56,7 +65,7 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
                     variant="ghost"
                     size="lg"
                     onClick={handleBack}
-                    className="bg-white hover:bg-gray-100 transition-smooth p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm"
+                    className="bg-white hover:bg-gray-100 transition-smooth p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm touch-feedback"
                   >
                     <ArrowLeft className="h-8 w-8 text-red-600" />
                   </Button>
@@ -92,19 +101,10 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
                   variant="ghost"
                   size="lg"
                   onClick={handleLogoutClick}
-                  className="bg-white hover:bg-gray-100 transition-smooth p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm"
+                  className="bg-white hover:bg-gray-100 transition-smooth p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm touch-feedback"
                 >
                   <LogOut className="h-8 w-8 text-red-600" />
                 </Button>
-              </div>
-            </div>
-
-            {/* Bottom section - User ID */}
-            <div className="flex justify-center">
-              <div className="bg-white px-6 py-2 rounded-full border border-gray-300">
-                <p className="text-xs sm:text-sm font-normal text-black">
-                  User – {username}
-                </p>
               </div>
             </div>
           </div>
@@ -113,18 +113,18 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
 
       {/* Logout Confirmation Dialog */}
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialogContent className="text-center">
+          <AlertDialogHeader className="text-center">
+            <AlertDialogTitle className="text-center">Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
               Are you sure you want to logout? You will need to scan your identification number again to access the system.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleLogoutConfirm}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Logout
             </AlertDialogAction>

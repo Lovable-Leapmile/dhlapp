@@ -195,9 +195,9 @@ const StationView = () => {
     
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders/${pendingOrder.id}/complete`,
+        `https://robotmanagerv1test.qikpod.com/nanostore/orders/complete?record_id=${pendingOrder.id}`,
         {
-          method: 'POST',
+          method: 'PATCH',
           headers: {
             'accept': 'application/json',
             'Authorization': `Bearer ${authToken}`,

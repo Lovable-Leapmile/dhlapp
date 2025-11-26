@@ -2,34 +2,49 @@ import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
-import { PackageCheck, PackageSearch, Settings, LayoutDashboard } from "lucide-react";
+import { Package, ArrowUp, ArrowDown, Info, UserCog, LayoutDashboard } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
 
+  // Custom tray icons with arrows
+  const InboundTrayIcon = () => (
+    <div className="relative">
+      <Package className="w-10 h-10 sm:w-12 sm:h-12 text-black" />
+      <ArrowUp className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 text-green-600 bg-white rounded-full p-1 animate-bounce" />
+    </div>
+  );
+
+  const PickupTrayIcon = () => (
+    <div className="relative">
+      <Package className="w-10 h-10 sm:w-12 sm:h-12 text-black" />
+      <ArrowDown className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 text-red-600 bg-white rounded-full p-1 animate-bounce" />
+    </div>
+  );
+
   const navigationCards = [
     {
       title: "Inbound",
-      icon: PackageCheck,
+      icon: InboundTrayIcon,
       path: "/inbound/select-bin",
       description: "Manage incoming inventory",
     },
     {
       title: "Pickup",
-      icon: PackageSearch,
+      icon: PickupTrayIcon,
       path: "/pickup",
       description: "Process outbound items",
     },
     {
       title: "Station View",
-      icon: Settings,
+      icon: Info,
       path: "/station-view",
       description: "Check station status",
     },
     {
       title: "Admin",
-      icon: Settings,
+      icon: UserCog,
       path: "/admin",
       description: "System configuration",
     },

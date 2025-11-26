@@ -299,12 +299,13 @@ const SelectInboundBin = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-center block">
+                <Label className="text-sm font-medium text-center block flex items-center justify-center gap-2">
+                  <Clock className="h-4 w-4 text-accent" />
                   Enter tray stay time at station (in minutes)
                 </Label>
                 
                 {/* Arrow Number Picker */}
-                <div className="flex items-center justify-center gap-4 py-4">
+                <div className="flex items-center justify-center gap-4 py-2">
                   {/* Left Arrow */}
                   <button
                     onClick={() => handleTimeChange(trayStayTime - 1)}
@@ -314,22 +315,17 @@ const SelectInboundBin = () => {
                     <ChevronLeft className="h-6 w-6" />
                   </button>
                   
-                  {/* Number Display with Time Icon and Min Label */}
-                  <div className="flex flex-col items-center justify-center">
-                    {/* Time Icon */}
-                    <Clock className="h-6 w-6 text-accent mb-1" />
-                    
+                  {/* Number Display with Min Label */}
+                  <div className="flex items-center justify-center gap-2">
                     {/* Number Display */}
-                    <div className="relative w-28 h-28 flex items-center justify-center">
-                      <div className="text-5xl font-bold text-accent">
-                        {trayStayTime}
-                      </div>
+                    <div className="text-5xl font-bold text-accent">
+                      {trayStayTime}
                     </div>
                     
                     {/* Min Label */}
-                    <div className="mt-0 px-3 py-1 bg-accent text-white rounded-full text-sm font-medium">
+                    <span className="text-lg font-medium text-accent">
                       min
-                    </div>
+                    </span>
                   </div>
                   
                   {/* Right Arrow */}

@@ -58,7 +58,7 @@ const AdminHistory = () => {
       setIsLoadingInbound(true);
       
       const offset = inboundPage * numRecords;
-      console.log("Fetching inbound transactions...", { offset, numRecords });
+      console.log("Fetching inbound transactions...", { offset, numRecords, page: inboundPage });
       const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC&num_records=${numRecords}&offset=${offset}`, {
         method: 'GET',
         headers: {
@@ -78,26 +78,31 @@ const AdminHistory = () => {
       
       // Handle API response structure
       let transactions = [];
+      let totalCount = 0;
+      
       if (data && typeof data === 'object') {
         if (data.records && Array.isArray(data.records)) {
           transactions = data.records;
-          setInboundTotalRecords(data.total_records || transactions.length);
+          totalCount = data.total_records || data.total_count || transactions.length;
         } else if (Array.isArray(data)) {
           transactions = data;
-          setInboundTotalRecords(transactions.length);
+          totalCount = transactions.length;
         } else {
           const possibleArrays = Object.values(data).filter(Array.isArray);
           if (possibleArrays.length > 0) {
             transactions = possibleArrays[0];
-            setInboundTotalRecords(transactions.length);
+            totalCount = transactions.length;
           }
         }
       }
       
+      console.log("Setting inbound data:", { transactions: transactions.length, totalCount });
       setInboundTransactions(transactions);
+      setInboundTotalRecords(totalCount);
     } catch (error) {
       console.error('Error fetching inbound transactions:', error);
       setInboundTransactions([]);
+      setInboundTotalRecords(0);
     } finally {
       setIsLoadingInbound(false);
     }
@@ -108,7 +113,7 @@ const AdminHistory = () => {
       setIsLoadingPickup(true);
       
       const offset = pickupPage * numRecords;
-      console.log("Fetching pickup transactions...", { offset, numRecords });
+      console.log("Fetching pickup transactions...", { offset, numRecords, page: pickupPage });
       const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC&num_records=${numRecords}&offset=${offset}`, {
         method: 'GET',
         headers: {
@@ -128,26 +133,31 @@ const AdminHistory = () => {
       
       // Handle API response structure
       let transactions = [];
+      let totalCount = 0;
+      
       if (data && typeof data === 'object') {
         if (data.records && Array.isArray(data.records)) {
           transactions = data.records;
-          setPickupTotalRecords(data.total_records || transactions.length);
+          totalCount = data.total_records || data.total_count || transactions.length;
         } else if (Array.isArray(data)) {
           transactions = data;
-          setPickupTotalRecords(transactions.length);
+          totalCount = transactions.length;
         } else {
           const possibleArrays = Object.values(data).filter(Array.isArray);
           if (possibleArrays.length > 0) {
             transactions = possibleArrays[0];
-            setPickupTotalRecords(transactions.length);
+            totalCount = transactions.length;
           }
         }
       }
       
+      console.log("Setting pickup data:", { transactions: transactions.length, totalCount });
       setPickupTransactions(transactions);
+      setPickupTotalRecords(totalCount);
     } catch (error) {
       console.error('Error fetching pickup transactions:', error);
       setPickupTransactions([]);
+      setPickupTotalRecords(0);
     } finally {
       setIsLoadingPickup(false);
     }
@@ -258,175 +268,183 @@ const AdminHistory = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <AppBar title="Transaction History" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex items-center justify-center gap-3">
-            <History className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
-            <h2 className="text-3xl sm:text-4xl font-semibold text-foreground text-center">
-              Transaction History
-            </h2>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex justify-center w-full">
-            <div className="inline-flex rounded-lg border border-border p-1 bg-muted/20 w-full">
-              <Button
-                variant={activeTab === "inbound" ? "default" : "ghost"}
-                onClick={() => setActiveTab("inbound")}
-                className="flex-1 px-6 py-2 rounded-md"
-              >
-                <ArrowDown className="w-4 h-4 mr-2" />
-                Inbound
-              </Button>
-              <Button
-                variant={activeTab === "pickup" ? "default" : "ghost"}
-                onClick={() => setActiveTab("pickup")}
-                className="flex-1 px-6 py-2 rounded-md"
-              >
-                <ArrowUp className="w-4 h-4 mr-2" />
-                Pickup
-              </Button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="space-y-6">
-            <div className="space-y-4 max-h-[calc(100vh-500px)] overflow-y-auto">
-            {activeTab === "inbound" ? (
-              isLoadingInbound ? (
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <div className="text-center space-y-4">
-                    <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
-                    <p className="text-lg text-muted-foreground">Loading inbound transactions...</p>
-                  </div>
-                </div>
-              ) : inboundTransactions.length > 0 ? (
-                inboundTransactions.map((transaction) => (
-                  <TransactionCard key={transaction.id} transaction={transaction} type="inbound" />
-                ))
-              ) : (
-                <div className="text-center space-y-6">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                    <ArrowDown className="h-6 w-6 text-gray-600" />
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <ArrowDown className="h-5 w-5 text-gray-600" />
-                    <h2 className="text-xl font-semibold text-foreground">
-                      No Inbound Transactions
-                    </h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    No inbound transactions found in the system.
-                  </p>
-                </div>
-              )
-            ) : (
-              isLoadingPickup ? (
-                <div className="flex items-center justify-center min-h-[400px]">
-                  <div className="text-center space-y-4">
-                    <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
-                    <p className="text-lg text-muted-foreground">Loading pickup transactions...</p>
-                  </div>
-                </div>
-              ) : pickupTransactions.length > 0 ? (
-                pickupTransactions.map((transaction) => (
-                  <TransactionCard key={transaction.id} transaction={transaction} type="pickup" />
-                ))
-              ) : (
-                <div className="text-center space-y-6">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                    <ArrowUp className="h-6 w-6 text-gray-600" />
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <ArrowUp className="h-5 w-5 text-gray-600" />
-                    <h2 className="text-xl font-semibold text-foreground">
-                      No Pickup Transactions
-                    </h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    No pickup transactions found in the system.
-                  </p>
-                </div>
-              )
-            )}
+      <div className="flex-1 flex flex-col overflow-hidden h-0">
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-hidden">
+          <div className="max-w-6xl mx-auto space-y-8 h-full flex flex-col">
+            {/* Header */}
+            <div className="flex-shrink-0">
+              <div className="flex items-center justify-center gap-3">
+                <History className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
+                <h2 className="text-3xl sm:text-4xl font-semibold text-foreground text-center">
+                  Transaction History
+                </h2>
+              </div>
             </div>
 
-            {/* Pagination */}
-            {activeTab === "inbound" && inboundTransactions.length > 0 && (
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setInboundPage(prev => Math.max(0, prev - 1))}
-                      disabled={inboundPage === 0}
-                      className="gap-1"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </Button>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <span className="text-sm text-muted-foreground px-4">
-                      {inboundPage * numRecords + 1}-{Math.min((inboundPage + 1) * numRecords, inboundTotalRecords)} of {inboundTotalRecords}
-                    </span>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setInboundPage(prev => prev + 1)}
-                      disabled={(inboundPage + 1) * numRecords >= inboundTotalRecords}
-                      className="gap-1"
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            )}
+            {/* Tabs */}
+            <div className="flex-shrink-0">
+              <div className="flex justify-center w-full">
+                <div className="inline-flex rounded-lg border border-border p-1 bg-muted/20 w-full">
+                  <Button
+                    variant={activeTab === "inbound" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("inbound")}
+                    className="flex-1 px-6 py-2 rounded-md"
+                  >
+                    <ArrowDown className="w-4 h-4 mr-2" />
+                    Inbound
+                  </Button>
+                  <Button
+                    variant={activeTab === "pickup" ? "default" : "ghost"}
+                    onClick={() => setActiveTab("pickup")}
+                    className="flex-1 px-6 py-2 rounded-md"
+                  >
+                    <ArrowUp className="w-4 h-4 mr-2" />
+                    Pickup
+                  </Button>
+                </div>
+              </div>
+            </div>
 
-            {activeTab === "pickup" && pickupTransactions.length > 0 && (
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPickupPage(prev => Math.max(0, prev - 1))}
-                      disabled={pickupPage === 0}
-                      className="gap-1"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Previous
-                    </Button>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <span className="text-sm text-muted-foreground px-4">
-                      {pickupPage * numRecords + 1}-{Math.min((pickupPage + 1) * numRecords, pickupTotalRecords)} of {pickupTotalRecords}
-                    </span>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPickupPage(prev => prev + 1)}
-                      disabled={(pickupPage + 1) * numRecords >= pickupTotalRecords}
-                      className="gap-1"
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            )}
+            {/* Scrollable Content Area with Pagination at End */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+              {activeTab === "inbound" ? (
+                isLoadingInbound ? (
+                  <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center space-y-4">
+                      <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
+                      <p className="text-lg text-muted-foreground">Loading inbound transactions...</p>
+                    </div>
+                  </div>
+                ) : inboundTransactions.length > 0 ? (
+                  inboundTransactions.map((transaction) => (
+                    <TransactionCard key={transaction.id} transaction={transaction} type="inbound" />
+                  ))
+                ) : (
+                  <div className="text-center space-y-6">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                      <ArrowDown className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <ArrowDown className="h-5 w-5 text-gray-600" />
+                      <h2 className="text-xl font-semibold text-foreground">
+                        No Inbound Transactions
+                      </h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                      No inbound transactions found in the system.
+                    </p>
+                  </div>
+                )
+              ) : (
+                isLoadingPickup ? (
+                  <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center space-y-4">
+                      <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
+                      <p className="text-lg text-muted-foreground">Loading pickup transactions...</p>
+                    </div>
+                  </div>
+                ) : pickupTransactions.length > 0 ? (
+                  pickupTransactions.map((transaction) => (
+                    <TransactionCard key={transaction.id} transaction={transaction} type="pickup" />
+                  ))
+                ) : (
+                  <div className="text-center space-y-6">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                      <ArrowUp className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <ArrowUp className="h-5 w-5 text-gray-600" />
+                      <h2 className="text-xl font-semibold text-foreground">
+                        No Pickup Transactions
+                      </h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                      No pickup transactions found in the system.
+                    </p>
+                  </div>
+                )
+              )}
+              </div>
+
+              {/* Pagination at End of List */}
+              <div className="flex-shrink-0 border-t border-border bg-background py-4 px-4 mt-4">
+                {activeTab === "inbound" && inboundTransactions.length > 0 && (
+                  <Pagination>
+                    <PaginationContent className="justify-center items-center gap-2">
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setInboundPage(prev => Math.max(0, prev - 1))}
+                          disabled={inboundPage === 0}
+                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
+                        </Button>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <span className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-md font-medium">
+                          Page {inboundPage + 1} of {Math.max(1, Math.ceil(inboundTotalRecords / numRecords))} ({inboundTotalRecords} total)
+                        </span>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setInboundPage(prev => prev + 1)}
+                          disabled={(inboundPage + 1) * numRecords >= inboundTotalRecords}
+                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+
+                {activeTab === "pickup" && pickupTransactions.length > 0 && (
+                  <Pagination>
+                    <PaginationContent className="justify-center items-center gap-2">
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPickupPage(prev => Math.max(0, prev - 1))}
+                          disabled={pickupPage === 0}
+                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
+                        </Button>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <span className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-md font-medium">
+                          Page {pickupPage + 1} of {Math.max(1, Math.ceil(pickupTotalRecords / numRecords))} ({pickupTotalRecords} total)
+                        </span>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPickupPage(prev => prev + 1)}
+                          disabled={(pickupPage + 1) * numRecords >= pickupTotalRecords}
+                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
     </div>

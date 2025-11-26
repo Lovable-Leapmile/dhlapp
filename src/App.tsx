@@ -28,25 +28,27 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/inbound/select-bin" element={<SelectInboundBin />} />
-          <Route path="/inbound/scan-items" element={<ScanItemToInbound />} />
-          <Route path="/pickup" element={<Pickup />} />
-          <Route path="/pickup/select-bin" element={<SelectPickupBin />} />
-          <Route path="/pickup/scan-items" element={<ScanItemToPickup />} />
-          <Route path="/station-view" element={<StationView />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/bins" element={<AdminBins />} />
-          <Route path="/admin/add-product" element={<AdminAddProduct />} />
-          <Route path="/admin/history" element={<AdminHistory />} />
-          <Route path="/admin/test-scanner" element={<AdminTestScanner />} />
-          <Route path="/admin/scanner-manual" element={<AdminScannerManual />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="mobile-full-height mobile-viewport no-pull-refresh">
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/inbound/select-bin" element={<SelectInboundBin />} />
+            <Route path="/inbound/scan-items" element={<ScanItemToInbound />} />
+            <Route path="/pickup" element={<Pickup />} />
+            <Route path="/pickup/select-bin" element={<SelectPickupBin />} />
+            <Route path="/pickup/scan-items" element={<ScanItemToPickup />} />
+            <Route path="/station-view" element={<StationView />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/bins" element={<AdminBins />} />
+            <Route path="/admin/add-product" element={<AdminAddProduct />} />
+            <Route path="/admin/history" element={<AdminHistory />} />
+            <Route path="/admin/test-scanner" element={<AdminTestScanner />} />
+            <Route path="/admin/scanner-manual" element={<AdminScannerManual />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
