@@ -38,12 +38,12 @@ const ScanItemToInbound = () => {
   const [countdown, setCountdown] = useState<number>(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [scannedItem, setScannedItem] = useState("");
-  const [items, setItems] = useState<{ itemId: string; recordId: number }[]>([]);
+  const [items, setItems] = useState<{ id: number; item_id: string }[]>([]);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{ itemId: string; recordId: number; index: number } | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ id: number; item_id: string } | null>(null);
 
   useEffect(() => {
     if (pollingMode === 'stopped') return;
@@ -194,6 +194,39 @@ const ScanItemToInbound = () => {
   }, [isCountdownActive, countdown, navigate]);
 
   // Start countdown when tray is ready and loading is false
+  // Fetch scanned items from API
+  const fetchScannedItems = async () => {
+    if (!orderRecord?.id) return;
+    
+    const authToken = sessionStorage.getItem("authToken");
+    if (!authToken) return;
+
+    try {
+      const response = await fetch(
+        `https://robotmanagerv1test.qikpod.com/nanostore/transactions?order_id=${orderRecord.id}&order_by_field=updated_at&order_by_type=DESC`,
+        {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.records) {
+          setItems(data.records.map((record: any) => ({
+            id: record.id,
+            item_id: record.item_id
+          })));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching scanned items:', error);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && trayStatus === "tray_ready_to_use" && !isCountdownActive) {
       const trayStayTime = sessionStorage.getItem("trayStayTime");
@@ -204,6 +237,13 @@ const ScanItemToInbound = () => {
       setIsCountdownActive(true);
     }
   }, [isLoading, trayStatus, isCountdownActive]);
+
+  // Fetch scanned items when order is ready
+  useEffect(() => {
+    if (orderRecord?.id && trayStatus === "tray_ready_to_use") {
+      fetchScannedItems();
+    }
+  }, [orderRecord?.id, trayStatus]);
 
   // Format countdown time
   const formatCountdown = (seconds: number): string => {
@@ -278,7 +318,8 @@ const ScanItemToInbound = () => {
         const transactionData = await transactionResponse.json();
         console.log("Transaction created:", transactionData);
         
-        setItems((prev) => [...prev, { itemId: value, recordId: transactionData.id }]);
+        // Refresh the scanned items list
+        await fetchScannedItems();
         setScannedItem("");
         setNotification({ type: 'success', message: 'Item added successfully' });
       } else {
@@ -296,9 +337,8 @@ const ScanItemToInbound = () => {
     }
   };
 
-  const handleRemoveItem = (index: number) => {
-    const item = items[index];
-    setItemToDelete({ ...item, index });
+  const handleRemoveItem = (item: { id: number; item_id: string }) => {
+    setItemToDelete(item);
     setShowDeleteConfirm(true);
   };
 
@@ -313,7 +353,7 @@ const ScanItemToInbound = () => {
 
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?record_id=${itemToDelete.recordId}`,
+        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?record_id=${itemToDelete.id}`,
         {
           method: 'DELETE',
           headers: {
@@ -324,7 +364,8 @@ const ScanItemToInbound = () => {
       );
 
       if (response.ok) {
-        setItems((prev) => prev.filter((_, i) => i !== itemToDelete.index));
+        // Refresh the scanned items list
+        await fetchScannedItems();
         setNotification({ type: 'success', message: 'Item removed successfully' });
       } else {
         setNotification({ type: 'error', message: 'Failed to remove item' });
@@ -456,8 +497,8 @@ const ScanItemToInbound = () => {
                   </h3>
                 </div>
                 <div className="space-y-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
-                  {items.map((item, index) => (
-                    <ItemCard key={`${item.itemId}-${index}`} itemId={item.itemId} onRemove={() => handleRemoveItem(index)} />
+                  {items.map((item) => (
+                    <ItemCard key={item.id} itemId={item.item_id} onRemove={() => handleRemoveItem(item)} />
                   ))}
                 </div>
               </div>
@@ -524,7 +565,7 @@ const ScanItemToInbound = () => {
                 {itemToDelete && (
                   <div className="p-3 bg-muted rounded-lg">
                     <p className="text-sm text-muted-foreground">Item ID</p>
-                    <p className="text-base font-medium text-foreground">{itemToDelete.itemId}</p>
+                    <p className="text-base font-medium text-foreground">{itemToDelete.item_id}</p>
                   </div>
                 )}
               </div>
