@@ -13,13 +13,23 @@ const AdminTestScanner = () => {
   const [scannedItems, setScannedItems] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleScan = (value: string) => {
-    setItemId(value);
-    setScannedItems((prev) => [...prev, value]);
-    
-    // Show success popup
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 1500);
+  const handleAddItem = () => {
+    if (itemId.trim()) {
+      setScannedItems((prev) => [...prev, itemId]);
+      
+      // Show success popup
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 1500);
+      
+      // Clear the input field
+      setItemId("");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleAddItem();
+    }
   };
 
   const handleClear = () => {
@@ -35,13 +45,19 @@ const AdminTestScanner = () => {
         {/* Item ID Input */}
         <div className="mb-8">
           <Label htmlFor="itemId" className="text-base mb-2 block">Item ID</Label>
-          <Input
-            id="itemId"
-            value={itemId}
-            onChange={(e) => setItemId(e.target.value)}
-            placeholder="Enter or scan item ID"
-            className="text-base"
-          />
+          <div className="flex gap-2">
+            <Input
+              id="itemId"
+              value={itemId}
+              onChange={(e) => setItemId(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter item ID"
+              className="text-base flex-1"
+            />
+            <Button onClick={handleAddItem} disabled={!itemId.trim()}>
+              Add
+            </Button>
+          </div>
         </div>
 
         {/* Test QR Codes */}
@@ -51,8 +67,7 @@ const AdminTestScanner = () => {
             {testQRValues.map((value) => (
               <div
                 key={value}
-                className="bg-card p-4 rounded-lg shadow-sm flex flex-col items-center cursor-pointer active:scale-95 transition-transform"
-                onClick={() => handleScan(value)}
+                className="bg-card p-4 rounded-lg shadow-sm flex flex-col items-center"
               >
                 <QRCodeSVG value={value} size={120} level="M" />
                 <p className="mt-3 text-sm font-medium text-foreground">{value}</p>
