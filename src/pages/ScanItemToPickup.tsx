@@ -7,7 +7,7 @@ import { ItemCard } from "@/components/ItemCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Barcode } from "lucide-react";
+import { Barcode, Camera, X, ArrowRight, Package, PackageCheck, Loader2, PackageSearch } from "lucide-react";
 import { toast } from "sonner";
 import robotAnimation from "@/assets/robot-bin-animation.gif";
 import {
@@ -347,9 +347,12 @@ const ScanItemToPickup = () => {
               className="w-full max-w-2xl mx-auto rounded-lg animate-pulse"
             />
             <div className="space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                Retrieving Bin {binId}
-              </h3>
+              <div className="flex items-center justify-center gap-3">
+                <PackageSearch className="h-8 w-8 text-red-600" />
+                <h3 className="text-2xl sm:text-3xl font-semibold text-foreground">
+                  Retrieving Bin {binId}
+                </h3>
+              </div>
               <p className="text-base sm:text-lg text-muted-foreground">
                 Robot is delivering the bin to the pickup station...
               </p>
@@ -361,15 +364,18 @@ const ScanItemToPickup = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             {/* Selected Bin */}
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-foreground mb-3">
-                Selected Bin
-              </h3>
+              <div className="flex items-center gap-3 mb-3">
+                <Package className="h-6 w-6 text-red-600" />
+                <h3 className="text-lg sm:text-xl font-medium text-foreground">
+                  Selected Bin
+                </h3>
+              </div>
               <BinCard binId={binId} itemCount={3} />
               
               {/* Countdown Timer */}
               {isCountdownActive && countdown > 0 && (
                 <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm font-medium text-amber-800">
+                  <p className="text-sm font-normal text-amber-800">
                     Tray will release automatically in {formatCountdown(countdown)}
                   </p>
                 </div>
@@ -401,9 +407,12 @@ const ScanItemToPickup = () => {
             {/* Scanned Items List */}
             {items.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-base sm:text-lg font-medium text-foreground">
-                  Picked Items ({items.length})
-                </h3>
+                <div className="flex items-center gap-3">
+                  <PackageCheck className="h-6 w-6 text-green-600" />
+                  <h3 className="text-lg sm:text-xl font-medium text-foreground">
+                    Picked Items ({items.length})
+                  </h3>
+                </div>
                 <div className="space-y-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
                   {items.map((item, index) => (
                     <ItemCard key={`${item}-${index}`} itemId={item} onRemove={() => handleRemoveItem(index)} />
@@ -416,7 +425,7 @@ const ScanItemToPickup = () => {
             <div className="sticky bottom-0 pt-4 pb-2 bg-background">
               <Button
                 onClick={handleCompleteOrder}
-                className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold bg-accent hover:bg-accent/90 text-accent-foreground transition-smooth"
+                className="w-full h-12 sm:h-14 text-base sm:text-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-smooth"
               >
                 Complete Pickup
               </Button>

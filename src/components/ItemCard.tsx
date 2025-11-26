@@ -14,7 +14,7 @@ export const ItemCard = ({ itemId, onRemove }: ItemCardProps) => {
         <Package className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
       </div>
       <div className="flex-1">
-        <p className="text-base sm:text-lg font-medium text-foreground">{itemId}</p>
+        <p className="text-base sm:text-lg font-normal text-foreground">{itemId}</p>
       </div>
       {onRemove && (
         <Button

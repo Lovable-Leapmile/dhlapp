@@ -44,9 +44,9 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
 
   return (
     <>
-      <header className="glass-effect shadow-soft sticky top-0 z-50">
+      <header className="bg-yellow-400 shadow-soft sticky top-0 z-50 border-b-2 border-red-600">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col py-3 gap-3">
+          <div className="flex flex-col py-4 gap-3">
             {/* Top section - Title and Logout */}
             <div className="flex items-center justify-between">
               {/* Left - Back button */}
@@ -54,22 +54,22 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
                 {showBack && (
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="lg"
                     onClick={handleBack}
-                    className="transition-smooth hover:bg-muted"
+                    className="bg-white hover:bg-gray-100 transition-smooth p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm"
                   >
-                    <ArrowLeft className="h-5 w-5" />
+                    <ArrowLeft className="h-8 w-8 text-red-600" />
                   </Button>
                 )}
                 {/* Hidden spacer button for centering when no back button */}
                 {!showBack && (
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="lg"
                     disabled
-                    className="opacity-0 pointer-events-none invisible"
+                    className="opacity-0 pointer-events-none invisible bg-white p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm"
                   >
-                    <ArrowLeft className="h-5 w-5 opacity-0" />
+                    <ArrowLeft className="h-8 w-8 opacity-0" />
                   </Button>
                 )}
               </div>
@@ -78,9 +78,9 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
               <div className="flex-1 text-center">
                 <div className="flex items-center justify-center gap-2">
                   {showHomeIcon && (
-                    <Home className="h-5 w-5 sm:h-6 sm:w-6 text-destructive flex-shrink-0" />
+                    <Home className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0" />
                   )}
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground leading-none">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-red-600 leading-none">
                     {title}
                   </h1>
                 </div>
@@ -90,19 +90,19 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
               <div className="flex items-center">
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="lg"
                   onClick={handleLogoutClick}
-                  className="transition-smooth hover:bg-destructive/10"
+                  className="bg-white hover:bg-gray-100 transition-smooth p-4 min-w-[56px] min-h-[56px] rounded-lg shadow-sm"
                 >
-                  <LogOut className="h-5 w-5 text-destructive" />
+                  <LogOut className="h-8 w-8 text-red-600" />
                 </Button>
               </div>
             </div>
 
             {/* Bottom section - User ID */}
             <div className="flex justify-center">
-              <div className="bg-accent px-6 py-2 rounded-full">
-                <p className="text-xs sm:text-sm font-medium text-foreground">
+              <div className="bg-white px-6 py-2 rounded-full border border-gray-300">
+                <p className="text-xs sm:text-sm font-normal text-black">
                   User – {username}
                 </p>
               </div>

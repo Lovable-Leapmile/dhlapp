@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
-import { PackageCheck, PackageSearch, Settings } from "lucide-react";
+import { PackageCheck, PackageSearch, Settings, LayoutDashboard } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -41,9 +41,12 @@ const Dashboard = () => {
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8 sm:mb-12 text-center">
-            Select an Operation
-          </h2>
+          <div className="flex items-center justify-center gap-3 mb-8 sm:mb-12">
+            <LayoutDashboard className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
+            <h2 className="text-3xl sm:text-4xl font-semibold text-foreground text-center">
+              Select an Operation
+            </h2>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {navigationCards.map((card, index) => {
@@ -56,8 +59,8 @@ const Dashboard = () => {
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-accent/20 rounded-2xl flex items-center justify-center">
-                      <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-destructive" />
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-2xl flex items-center justify-center">
+                      <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-black" />
                     </div>
                     <div>
                       <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">

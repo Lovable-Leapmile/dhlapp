@@ -5,7 +5,8 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Clock, PackageCheck, PackageSearch, AlertCircle, ArrowRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Clock, PackageCheck, PackageSearch, AlertCircle, ArrowRight, Loader2, Monitor, Activity } from "lucide-react";
 
 interface StationOrder {
   id: string;
@@ -15,11 +16,28 @@ interface StationOrder {
   updated_at: string;
 }
 
+interface InProgressTray {
+  id: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  user_id: number;
+  tray_id: string;
+  tray_status: string;
+  station_id: string | null;
+  station_friendly_name: string | null;
+  station_tags: string[];
+  auto_complete_time: number;
+}
+
 const StationView = () => {
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
   const [pendingOrder, setPendingOrder] = useState<StationOrder | null>(null);
+  const [inProgressTrays, setInProgressTrays] = useState<InProgressTray[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingInProgress, setIsLoadingInProgress] = useState(false);
+  const [activeTab, setActiveTab] = useState("station");
   const [showOrderTypeDialog, setShowOrderTypeDialog] = useState(false);
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
@@ -34,6 +52,14 @@ const StationView = () => {
 
     return () => clearInterval(pollInterval);
   }, [shouldStopPolling]);
+
+  useEffect(() => {
+    if (activeTab === "inprogress") {
+      fetchInProgressTrays();
+    } else if (activeTab === "station") {
+      fetchPendingOrders();
+    }
+  }, [activeTab]);
 
   const fetchPendingOrders = async () => {
     const authToken = sessionStorage.getItem("authToken");
@@ -83,6 +109,49 @@ const StationView = () => {
       setPendingOrder(null);
       setIsLoading(false);
       setShouldStopPolling(true);
+    }
+  };
+
+  const fetchInProgressTrays = async () => {
+    const authToken = sessionStorage.getItem("authToken");
+    
+    if (!authToken) {
+      console.error("No auth token found");
+      return;
+    }
+
+    setIsLoadingInProgress(true);
+    
+    try {
+      const response = await fetch(
+        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_status=inprogress&order_by_field=updated_at&order_by_type=ASC`,
+        {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("In-progress trays response:", data);
+        
+        if (data.records) {
+          setInProgressTrays(data.records);
+        } else {
+          setInProgressTrays([]);
+        }
+      } else {
+        console.error("Failed to fetch in-progress trays:", response.status);
+        setInProgressTrays([]);
+      }
+    } catch (error) {
+      console.error("Error fetching in-progress trays:", error);
+      setInProgressTrays([]);
+    } finally {
+      setIsLoadingInProgress(false);
     }
   };
 
@@ -160,91 +229,161 @@ const StationView = () => {
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center min-h-[400px]">
-              <div className="animate-pulse text-center">
-                <Clock className="h-12 w-12 text-accent mx-auto mb-4" />
-                <p className="text-lg text-muted-foreground">Checking station status...</p>
-              </div>
-            </div>
-          ) : pendingOrder ? (
-            <div className="space-y-8">
-              {/* Station Status Card */}
-              <Card className="p-8 sm:p-12 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-lg">
-                <div className="text-center space-y-6">
-                  {/* Alert Icon */}
-                  <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
-                    <AlertCircle className="h-10 w-10 text-amber-600" />
-                  </div>
-                  
-                  {/* Status Message */}
-                  <div className="space-y-2">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-amber-800">
-                      Pending Order at Station
-                    </h2>
-                    <p className="text-amber-700">
-                      A tray is waiting at the station for processing
-                    </p>
-                  </div>
-
-                  {/* Station and Tray Info */}
-                  <div className="bg-white/70 rounded-xl p-6 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="text-center sm:text-left">
-                        <p className="text-sm font-medium text-amber-600 mb-1">Station</p>
-                        <p className="text-xl font-semibold text-amber-900">
-                          {pendingOrder.station_friendly_name || 'Main Station'}
-                        </p>
-                      </div>
-                      <div className="text-center sm:text-left">
-                        <p className="text-sm font-medium text-amber-600 mb-1">Tray ID</p>
-                        <p className="text-xl font-semibold text-amber-900">
-                          {pendingOrder.tray_id}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button
-                      onClick={handleContinueOrder}
-                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-                    >
-                      Continue Order
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                    <Button
-                      onClick={() => setShowReleaseConfirm(true)}
-                      variant="outline"
-                      className="border-red-200 text-red-600 hover:bg-red-50 px-8 py-3 text-lg"
-                    >
-                      Release Tray
-                    </Button>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="station">In Station trays</TabsTrigger>
+              <TabsTrigger value="inprogress">In Progress trays</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="station" className="mt-6">
+              {isLoading ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="animate-pulse text-center">
+                    <Clock className="h-12 w-12 text-accent mx-auto mb-4" />
+                    <p className="text-lg text-muted-foreground">Checking station status...</p>
                   </div>
                 </div>
-              </Card>
-            </div>
-          ) : (
-            /* No Pending Orders */
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <PackageCheck className="h-10 w-10 text-green-600" />
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
-                Station is Clear
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                No pending orders at the station. The station is ready for new operations.
-              </p>
-              <Button
-                onClick={() => navigate("/dashboard")}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3"
-              >
-                Back to Dashboard
-              </Button>
-            </div>
-          )}
+              ) : pendingOrder ? (
+                <div className="space-y-8">
+                  {/* Station Status Card */}
+                  <Card className="p-8 sm:p-12 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-lg">
+                    <div className="text-center space-y-6">
+                      {/* Station and Tray Info */}
+                      <div className="bg-white/70 rounded-xl p-6 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="text-center sm:text-left">
+                            <p className="text-sm font-normal text-amber-600 mb-1">Station</p>
+                            <p className="text-xl font-medium text-amber-900">
+                              {pendingOrder.station_friendly_name || 'Main Station'}
+                            </p>
+                          </div>
+                          <div className="text-center sm:text-left">
+                            <p className="text-sm font-normal text-amber-600 mb-1">Tray ID</p>
+                            <p className="text-xl font-medium text-amber-900">
+                              {pendingOrder.tray_id}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
+                        <Button
+                          onClick={handleContinueOrder}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+                        >
+                          Continue Order
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                        <Button
+                          onClick={() => setShowReleaseConfirm(true)}
+                          variant="outline"
+                          className="flex-1 border-red-200 text-red-600 hover:bg-red-50 px-8 py-3 text-lg"
+                        >
+                          Release Tray
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              ) : (
+                /* No Pending Orders */
+                <div className="text-center space-y-6">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <PackageCheck className="h-10 w-10 text-green-600" />
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <PackageCheck className="h-8 w-8 text-green-600" />
+                    <h2 className="text-3xl sm:text-4xl font-semibold text-foreground">
+                      Station is Clear
+                    </h2>
+                  </div>
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                    No pending orders at the station. The station is ready for new operations.
+                  </p>
+                  <Button
+                    onClick={() => navigate("/dashboard")}
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-3"
+                  >
+                    Back to Dashboard
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="inprogress" className="mt-6">
+              {isLoadingInProgress ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="animate-pulse text-center">
+                    <Loader2 className="h-12 w-12 text-accent mx-auto mb-4 animate-spin" />
+                    <p className="text-lg text-muted-foreground">Loading in-progress trays...</p>
+                  </div>
+                </div>
+              ) : inProgressTrays.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Activity className="h-6 w-6 text-blue-600" />
+                    <h2 className="text-2xl font-semibold text-foreground mb-4">
+                      In Progress Trays ({inProgressTrays.length})
+                    </h2>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {inProgressTrays.map((tray) => (
+                      <Card key={tray.id} className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-normal text-blue-600">Tray ID</span>
+                            <span className="text-lg font-medium text-blue-900">{tray.tray_id}</span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-normal text-blue-600">Status</span>
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                              {tray.tray_status}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-normal text-blue-600">Auto Complete</span>
+                            <span className="text-sm text-blue-800">{tray.auto_complete_time}s</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-xs text-blue-600">Created</p>
+                            <p className="text-sm text-blue-800">
+                              {new Date(tray.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-xs text-blue-600">Updated</p>
+                            <p className="text-sm text-blue-800">
+                              {new Date(tray.updated_at).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center space-y-6">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                    <PackageCheck className="h-10 w-10 text-gray-600" />
+                  </div>
+                  <div className="flex items-center justify-center gap-3">
+                    <Monitor className="h-8 w-8 text-gray-600" />
+                    <h2 className="text-3xl sm:text-4xl font-semibold text-foreground">
+                      No In Progress Trays
+                    </h2>
+                  </div>
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                    There are currently no trays in progress. All trays are either ready or completed.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
@@ -296,7 +435,7 @@ const StationView = () => {
             <AlertDialogAction
               onClick={handleReleaseTray}
               disabled={isReleasing}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               {isReleasing ? "Releasing..." : "Release Tray"}
             </AlertDialogAction>

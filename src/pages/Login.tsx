@@ -80,14 +80,14 @@ const Login = () => {
               Welcome Back
             </h2>
             <p className="text-center text-muted-foreground">
-              Enter your mobile number to continue
+              Scan ID Number
             </p>
           </div>
 
           <div className="space-y-4">
             <Input 
               type="text" 
-              placeholder="Scan Mobile Number" 
+              placeholder="ID Number" 
               value={mobileNumber} 
               onChange={e => setMobileNumber(e.target.value.replace(/\D/g, ""))} 
               onKeyPress={handleKeyPress} 

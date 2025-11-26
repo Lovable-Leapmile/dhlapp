@@ -29,7 +29,7 @@ export const BinCard = ({ binId, itemCount, onClick }: BinCardProps) => {
       <div className="flex-1 text-left min-w-0">
         <p className="text-xs text-muted-foreground">Bin ID</p>
         <div className="flex items-center gap-1.5">
-          <p className="text-base sm:text-lg font-semibold text-foreground">{binId}</p>
+          <p className="text-base sm:text-lg font-medium text-foreground">{binId}</p>
         </div>
         <p className="text-xs text-muted-foreground">({itemCount} items)</p>
       </div>
