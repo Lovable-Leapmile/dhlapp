@@ -38,10 +38,12 @@ const ScanItemToPickup = () => {
   const [countdown, setCountdown] = useState<number>(0);
   const [isCountdownActive, setIsCountdownActive] = useState(false);
   const [scannedItem, setScannedItem] = useState("");
-  const [items, setItems] = useState<string[]>([]);
+  const [items, setItems] = useState<{ itemId: string; recordId: number }[]>([]);
   const [showBackConfirm, setShowBackConfirm] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ itemId: string; recordId: number; index: number } | null>(null);
 
   useEffect(() => {
     if (pollingMode === 'stopped') return;
@@ -273,7 +275,10 @@ const ScanItemToPickup = () => {
       );
 
       if (transactionResponse.ok) {
-        setItems((prev) => [...prev, value]);
+        const transactionData = await transactionResponse.json();
+        console.log("Transaction created:", transactionData);
+        
+        setItems((prev) => [...prev, { itemId: value, recordId: transactionData.id }]);
         setScannedItem("");
         setNotification({ type: 'success', message: 'Item picked successfully' });
       } else {
@@ -292,8 +297,45 @@ const ScanItemToPickup = () => {
   };
 
   const handleRemoveItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-    toast.info("Item removed");
+    const item = items[index];
+    setItemToDelete({ ...item, index });
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    const authToken = sessionStorage.getItem("authToken");
+    if (!authToken) {
+      setNotification({ type: 'error', message: 'Authentication token missing' });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?record_id=${itemToDelete.recordId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setItems((prev) => prev.filter((_, i) => i !== itemToDelete.index));
+        setNotification({ type: 'success', message: 'Item removed successfully' });
+      } else {
+        setNotification({ type: 'error', message: 'Failed to remove item' });
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      setNotification({ type: 'error', message: 'Failed to remove item' });
+    } finally {
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
+    }
   };
 
   const handleCompleteOrder = async () => {
@@ -415,7 +457,7 @@ const ScanItemToPickup = () => {
                 </div>
                 <div className="space-y-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
                   {items.map((item, index) => (
-                    <ItemCard key={`${item}-${index}`} itemId={item} onRemove={() => handleRemoveItem(index)} />
+                    <ItemCard key={`${item.itemId}-${index}`} itemId={item.itemId} onRemove={() => handleRemoveItem(index)} />
                   ))}
                 </div>
               </div>
@@ -466,6 +508,35 @@ const ScanItemToPickup = () => {
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Item Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Item</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <BinCard binId={binId} itemCount={items.length} />
+                {itemToDelete && (
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">Item ID</p>
+                    <p className="text-base font-medium text-foreground">{itemToDelete.itemId}</p>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:gap-2">
+            <AlertDialogCancel className="flex-1 m-0">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="flex-1 m-0 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

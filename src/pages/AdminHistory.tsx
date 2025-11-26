@@ -4,7 +4,12 @@ import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Package, PackageOpen, History, ArrowDown, ArrowUp, Tag, Archive } from "lucide-react";
+import { Package, PackageOpen, History, ArrowDown, ArrowUp, Tag, Archive, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
 
 interface Transaction {
   id: number;
@@ -40,6 +45,11 @@ const AdminHistory = () => {
   const [isLoadingInbound, setIsLoadingInbound] = useState(true);
   const [isLoadingPickup, setIsLoadingPickup] = useState(true);
   const [error, setError] = useState("");
+  const [inboundPage, setInboundPage] = useState(0);
+  const [pickupPage, setPickupPage] = useState(0);
+  const [inboundTotalRecords, setInboundTotalRecords] = useState(0);
+  const [pickupTotalRecords, setPickupTotalRecords] = useState(0);
+  const numRecords = 10;
 
   const authToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
 
@@ -47,8 +57,9 @@ const AdminHistory = () => {
     try {
       setIsLoadingInbound(true);
       
-      console.log("Fetching inbound transactions...");
-      const response = await fetch('https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC', {
+      const offset = inboundPage * numRecords;
+      console.log("Fetching inbound transactions...", { offset, numRecords });
+      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC&num_records=${numRecords}&offset=${offset}`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -70,12 +81,15 @@ const AdminHistory = () => {
       if (data && typeof data === 'object') {
         if (data.records && Array.isArray(data.records)) {
           transactions = data.records;
+          setInboundTotalRecords(data.total_records || transactions.length);
         } else if (Array.isArray(data)) {
           transactions = data;
+          setInboundTotalRecords(transactions.length);
         } else {
           const possibleArrays = Object.values(data).filter(Array.isArray);
           if (possibleArrays.length > 0) {
             transactions = possibleArrays[0];
+            setInboundTotalRecords(transactions.length);
           }
         }
       }
@@ -93,8 +107,9 @@ const AdminHistory = () => {
     try {
       setIsLoadingPickup(true);
       
-      console.log("Fetching pickup transactions...");
-      const response = await fetch('https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC', {
+      const offset = pickupPage * numRecords;
+      console.log("Fetching pickup transactions...", { offset, numRecords });
+      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC&num_records=${numRecords}&offset=${offset}`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -116,12 +131,15 @@ const AdminHistory = () => {
       if (data && typeof data === 'object') {
         if (data.records && Array.isArray(data.records)) {
           transactions = data.records;
+          setPickupTotalRecords(data.total_records || transactions.length);
         } else if (Array.isArray(data)) {
           transactions = data;
+          setPickupTotalRecords(transactions.length);
         } else {
           const possibleArrays = Object.values(data).filter(Array.isArray);
           if (possibleArrays.length > 0) {
             transactions = possibleArrays[0];
+            setPickupTotalRecords(transactions.length);
           }
         }
       }
@@ -141,7 +159,7 @@ const AdminHistory = () => {
     } else {
       fetchPickupTransactions();
     }
-  }, [activeTab]);
+  }, [activeTab, inboundPage, pickupPage]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -273,7 +291,8 @@ const AdminHistory = () => {
           </div>
 
           {/* Content */}
-          <div className="space-y-4 max-h-[calc(100vh-400px)] overflow-y-auto">
+          <div className="space-y-6">
+            <div className="space-y-4 max-h-[calc(100vh-500px)] overflow-y-auto">
             {activeTab === "inbound" ? (
               isLoadingInbound ? (
                 <div className="flex items-center justify-center min-h-[400px]">
@@ -330,6 +349,80 @@ const AdminHistory = () => {
                   </p>
                 </div>
               )
+            )}
+            </div>
+
+            {/* Pagination */}
+            {activeTab === "inbound" && inboundTransactions.length > 0 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInboundPage(prev => Math.max(0, prev - 1))}
+                      disabled={inboundPage === 0}
+                      className="gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="text-sm text-muted-foreground px-4">
+                      {inboundPage * numRecords + 1}-{Math.min((inboundPage + 1) * numRecords, inboundTotalRecords)} of {inboundTotalRecords}
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInboundPage(prev => prev + 1)}
+                      disabled={(inboundPage + 1) * numRecords >= inboundTotalRecords}
+                      className="gap-1"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+
+            {activeTab === "pickup" && pickupTransactions.length > 0 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPickupPage(prev => Math.max(0, prev - 1))}
+                      disabled={pickupPage === 0}
+                      className="gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="text-sm text-muted-foreground px-4">
+                      {pickupPage * numRecords + 1}-{Math.min((pickupPage + 1) * numRecords, pickupTotalRecords)} of {pickupTotalRecords}
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPickupPage(prev => prev + 1)}
+                      disabled={(pickupPage + 1) * numRecords >= pickupTotalRecords}
+                      className="gap-1"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             )}
           </div>
         </div>
