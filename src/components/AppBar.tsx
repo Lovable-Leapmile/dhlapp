@@ -44,7 +44,10 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
 
   return (
     <>
-      <header className="bg-yellow-400 shadow-soft fixed top-0 left-0 right-0 z-50 border-b-2 border-red-600">
+      {/* Safe area for mobile screens */}
+      <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-yellow-400 z-50" />
+      
+      <header className="bg-yellow-400 shadow-soft fixed top-[env(safe-area-inset-top)] left-0 right-0 z-50 border-b-2 border-red-600">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col gap-3">
             {/* Top section - User ID */}
