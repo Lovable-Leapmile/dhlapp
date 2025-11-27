@@ -44,8 +44,8 @@ export const AppBar = ({ title, showBack = false, username = "John Doe", showHom
 
   return (
     <>
-      <header className="bg-yellow-400 shadow-soft sticky top-0 z-50 border-b-2 border-red-600 safe-area-top">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 safe-area-left safe-area-right">
+      <header className="bg-yellow-400 shadow-soft fixed top-0 left-0 right-0 z-50 border-b-2 border-red-600">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col gap-3">
             {/* Top section - User ID */}
             <div className="flex justify-center">
