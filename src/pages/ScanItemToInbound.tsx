@@ -553,6 +553,9 @@ const ScanItemToInbound = () => {
                   onKeyPress={handleKeyPress}
                   placeholder="Scan or enter item ID"
                   className="h-12 sm:h-14 pl-12 sm:pl-14 text-base sm:text-lg bg-background border-border focus:border-accent focus:ring-accent"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
                   autoFocus
                 />
               </div>
