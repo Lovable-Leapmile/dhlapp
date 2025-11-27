@@ -14,6 +14,7 @@ const AdminAddProduct = () => {
   const [itemId, setItemId] = useState("");
   const [itemDescription, setItemDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showClearDialog, setShowClearDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [addedItem, setAddedItem] = useState<{ item_id: string; item_description: string } | null>(null);
@@ -23,7 +24,7 @@ const AdminAddProduct = () => {
 
   const handleScanAgain = () => {
     if (itemId || itemDescription) {
-      setShowConfirmDialog(true);
+      setShowClearDialog(true);
     } else {
       // Fields are already empty, just focus on first input
       document.getElementById("item-id")?.focus();
@@ -34,15 +35,21 @@ const AdminAddProduct = () => {
     setItemId("");
     setItemDescription("");
     setError("");
-    setShowConfirmDialog(false);
+    setShowClearDialog(false);
     document.getElementById("item-id")?.focus();
   };
 
-  const handleConfirmItem = async () => {
+  const handleConfirmItemClick = () => {
     if (!itemId.trim() || !itemDescription.trim()) {
       setError("Both Item ID and Item Description are required");
       return;
     }
+    setError("");
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmItem = async () => {
+    setShowConfirmDialog(false);
 
     try {
       setIsLoading(true);
@@ -85,7 +92,7 @@ const AdminAddProduct = () => {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleConfirmItem();
+      handleConfirmItemClick();
     }
   };
 
@@ -158,7 +165,7 @@ const AdminAddProduct = () => {
                 Scan Again
               </Button>
               <Button
-                onClick={handleConfirmItem}
+                onClick={handleConfirmItemClick}
                 disabled={isLoading || !itemId.trim() || !itemDescription.trim()}
                 className="h-12 sm:h-14 text-base sm:text-lg bg-accent hover:bg-accent/90 w-full"
               >
@@ -177,7 +184,7 @@ const AdminAddProduct = () => {
       </main>
 
       {/* Clear Confirmation Dialog */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Clear Fields?</AlertDialogTitle>
@@ -189,6 +196,31 @@ const AdminAddProduct = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={clearFields}>
               Clear Fields
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="text-center">
+          <AlertDialogHeader className="text-center">
+            <AlertDialogTitle className="text-center">Confirm Item</AlertDialogTitle>
+            <AlertDialogDescription className="text-center space-y-2">
+              <p>Are you sure you want to add this item?</p>
+              <div className="mt-4 text-left bg-muted p-4 rounded-lg">
+                <p className="font-medium">Item ID: {itemId}</p>
+                <p className="font-medium">Description: {itemDescription}</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2">
+            <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmItem}
+              className="flex-1 bg-primary hover:bg-primary/90"
+            >
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

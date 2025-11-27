@@ -64,7 +64,7 @@ const ScanItemToPickup = () => {
         if (pollingMode === 'inprogress') {
           // Check inprogress status
           const response = await fetch(
-            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
             {
               method: 'GET',
               headers: {
@@ -103,7 +103,7 @@ const ScanItemToPickup = () => {
             
             try {
               const readyResponse = await fetch(
-                `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+                `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
                 {
                   method: 'GET',
                   headers: {
@@ -136,7 +136,7 @@ const ScanItemToPickup = () => {
         } else if (pollingMode === 'ready_to_use') {
           // Check tray_ready_to_use status - continue polling until API failure
           const response = await fetch(
-            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
             {
               method: 'GET',
               headers: {
@@ -173,7 +173,7 @@ const ScanItemToPickup = () => {
           
           try {
             const readyResponse = await fetch(
-              `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=ASC&num_records=1`,
+              `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
               {
                 method: 'GET',
                 headers: {
@@ -387,10 +387,11 @@ const ScanItemToPickup = () => {
         const transactionData = await transactionResponse.json();
         console.log("Transaction created:", transactionData);
         
-        // Refresh the scanned items list
-        await fetchScannedItems();
         setScannedItem("");
         setNotification({ type: 'success', message: 'Item picked successfully' });
+        
+        // Refresh the scanned items list after showing notification
+        await fetchScannedItems();
       } else {
         setNotification({ type: 'error', message: 'Failed to pick item' });
       }
