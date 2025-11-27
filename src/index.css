@@ -178,11 +178,6 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Safe area support for mobile devices */
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Mobile viewport height fix */

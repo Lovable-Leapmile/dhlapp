@@ -495,11 +495,11 @@ const ScanItemToPickup = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex flex-col h-screen bg-background">
       <AppBar title="Scan Item to Pickup" showBack username={username} onBack={handleBack} />
 
       {isLoading ? (
-        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex items-center justify-center">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex items-center justify-center">
           <div className="text-center space-y-6 animate-fade-in">
             <img
               src={robotAnimation}
@@ -520,8 +520,9 @@ const ScanItemToPickup = () => {
           </div>
         </main>
       ) : (
-        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="max-w-3xl mx-auto space-y-6">
+        <>
+          <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="max-w-3xl mx-auto space-y-6">
             {/* Selected Bin */}
             <div>
               <div className="flex items-center gap-3 mb-3">
@@ -566,32 +567,35 @@ const ScanItemToPickup = () => {
 
             {/* Scanned Items List */}
             {items.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3 pb-4">
                 <div className="flex items-center gap-3">
                   <PackageCheck className="h-6 w-6 text-green-600" />
                   <h3 className="text-lg sm:text-xl font-medium text-foreground">
                     Scanned Items ({items.length})
                   </h3>
                 </div>
-                <div className="space-y-3 max-h-[calc(100vh-500px)] overflow-y-auto pr-2">
+                <div className="space-y-3">
                   {items.map((item) => (
                     <ItemCard key={item.id} itemId={item.item_id} transactionType={item.transaction_type} onRemove={() => handleRemoveItem(item)} />
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Complete Button */}
-            <div className="sticky bottom-0 pt-4 pb-6 bg-background">
-              <Button
-                onClick={handleCompleteOrder}
-                className="w-full h-12 sm:h-14 text-base sm:text-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-smooth"
-              >
-                Complete Order
-              </Button>
-            </div>
           </div>
         </main>
+
+        {/* Fixed Complete Order Button */}
+        <div className="border-t border-border bg-background px-4 sm:px-6 lg:px-8 py-4 pb-6">
+          <div className="max-w-3xl mx-auto">
+            <Button
+              onClick={handleCompleteOrder}
+              className="w-full h-12 sm:h-14 text-base sm:text-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-smooth"
+            >
+              Complete Order
+            </Button>
+          </div>
+        </div>
+      </>
       )}
 
       <Footer />
