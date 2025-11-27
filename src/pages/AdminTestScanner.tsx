@@ -41,7 +41,7 @@ const AdminTestScanner = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <AppBar title="Test Scanner" showBack />
       
-      <main className="flex-1 px-6 py-8 pb-24 overflow-y-auto">
+      <main className="flex-1 px-6 py-8 pb-24 pt-44 overflow-y-auto">
         {/* Item ID Input */}
         <div className="mb-8">
           <Label htmlFor="itemId" className="text-base mb-2 block">Item ID</Label>

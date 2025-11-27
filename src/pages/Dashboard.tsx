@@ -54,7 +54,7 @@ const Dashboard = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <AppBar title="Dashboard" username={username} showHomeIcon />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-44">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center gap-3 mb-8 sm:mb-12">
             <LayoutDashboard className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
