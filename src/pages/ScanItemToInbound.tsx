@@ -21,8 +21,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const VALID_ITEMS = ["item1", "item2", "item3", "item4", "item5"];
-
 const ScanItemToInbound = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -324,12 +322,6 @@ const ScanItemToInbound = () => {
   const handleScan = async (value: string) => {
     if (value.trim() === "") return;
 
-    if (!VALID_ITEMS.includes(value.toLowerCase())) {
-      setScannedItem("");
-      setNotification({ type: 'error', message: "Item didn't added, invalid item" });
-      return;
-    }
-
     const authToken = sessionStorage.getItem("authToken");
     if (!authToken || !orderRecord?.id) {
       setNotification({ type: 'error', message: 'Order information missing' });
@@ -373,7 +365,7 @@ const ScanItemToInbound = () => {
 
       // Create transaction
       const transactionResponse = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value.toLowerCase()}&transaction_item_quantity=1&transaction_type=inbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
+        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value}&transaction_item_quantity=1&transaction_type=inbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
         {
           method: 'POST',
           headers: {
