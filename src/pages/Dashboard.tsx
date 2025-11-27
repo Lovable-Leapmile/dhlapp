@@ -12,14 +12,14 @@ const Dashboard = () => {
   const InboundTrayIcon = () => (
     <div className="relative">
       <Package className="w-10 h-10 sm:w-12 sm:h-12 text-black" />
-      <ArrowUp className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 text-green-600 bg-white rounded-full p-1 animate-bounce" />
+      <ArrowDown className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 text-red-600 bg-white rounded-full p-1 animate-bounce" />
     </div>
   );
 
   const PickupTrayIcon = () => (
     <div className="relative">
       <Package className="w-10 h-10 sm:w-12 sm:h-12 text-black" />
-      <ArrowDown className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 text-red-600 bg-white rounded-full p-1 animate-bounce" />
+      <ArrowUp className="absolute -top-2 -right-2 w-6 h-6 sm:w-7 sm:h-7 text-green-600 bg-white rounded-full p-1 animate-bounce" />
     </div>
   );
 
