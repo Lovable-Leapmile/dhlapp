@@ -265,11 +265,11 @@ const AdminHistory = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
       <AppBar title="Transaction History" showBack username={username} />
 
       <div className="flex-1 flex flex-col overflow-hidden h-0">
-        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-44 overflow-hidden">
+        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-hidden">
           <div className="max-w-6xl mx-auto space-y-8 h-full flex flex-col">
             {/* Header */}
             <div className="flex-shrink-0">
