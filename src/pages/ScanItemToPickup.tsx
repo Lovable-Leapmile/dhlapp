@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
@@ -539,7 +539,7 @@ const ScanItemToPickup = () => {
             {/* Scan Input */}
             <div className="space-y-2">
               <Label htmlFor="scan-input" className="text-base sm:text-lg">
-                Scanned Item
+                Scan items here
               </Label>
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -552,12 +552,24 @@ const ScanItemToPickup = () => {
                   onChange={(e) => setScannedItem(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Scan or enter item ID"
-                  className="h-12 sm:h-14 pl-12 sm:pl-14 text-base sm:text-lg bg-background border-border focus:border-accent focus:ring-accent"
+                  className="h-12 sm:h-14 pl-12 sm:pl-14 pr-12 text-base sm:text-lg bg-background border-border focus:border-accent focus:ring-accent"
                   autoCapitalize="off"
                   autoCorrect="off"
                   autoComplete="off"
                   autoFocus
                 />
+                {scannedItem && (
+                  <button
+                    onClick={() => {
+                      setScannedItem("");
+                      document.getElementById("scan-input")?.focus();
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    type="button"
+                  >
+                    <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                )}
               </div>
             </div>
 
