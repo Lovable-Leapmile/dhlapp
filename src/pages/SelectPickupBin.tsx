@@ -198,7 +198,7 @@ const SelectPickupBin = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <AppBar title="Select Pickup Bin" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pt-44">
         {/* Search Bar and Filter */}
         <div className="flex justify-center items-center gap-3 mb-6 sm:mb-8">
           <div className={`transition-all duration-300 ${
