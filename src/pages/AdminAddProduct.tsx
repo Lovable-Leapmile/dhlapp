@@ -90,10 +90,10 @@ const AdminAddProduct = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
       <AppBar title="Add Product" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-44">
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="max-w-2xl mx-auto space-y-8">
           {/* Header with Icon */}
           <div className="flex flex-col items-center space-y-6">

@@ -495,7 +495,7 @@ const ScanItemToPickup = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background pt-44">
+    <div className="flex flex-col h-screen bg-background pt-[180px]">
       <AppBar title="Scan Item to Pickup" showBack username={username} onBack={handleBack} />
 
       {isLoading ? (
