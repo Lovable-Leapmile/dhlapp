@@ -4,12 +4,10 @@ import { AppBar } from "@/components/AppBar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Package, PackageOpen, History, ArrowDown, ArrowUp, Tag, Archive, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from "@/components/ui/pagination";
+import { Package, PackageOpen, History, ArrowDown, ArrowUp, Tag, Archive, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 
 interface Transaction {
   id: number;
@@ -49,6 +47,7 @@ const AdminHistory = () => {
   const [pickupPage, setPickupPage] = useState(0);
   const [inboundTotalRecords, setInboundTotalRecords] = useState(0);
   const [pickupTotalRecords, setPickupTotalRecords] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const numRecords = 10;
 
   const authToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
@@ -305,9 +304,111 @@ const AdminHistory = () => {
               </div>
             </div>
 
-            {/* Scrollable Content Area with Pagination at End */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+            {/* Pagination and Calendar Filter - Fixed at Top */}
+            <div className="flex-shrink-0 flex items-center justify-between gap-4 py-4 px-2 border-y border-border bg-background">
+              {activeTab === "inbound" && inboundTransactions.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setInboundPage(prev => Math.max(0, prev - 1))}
+                    disabled={inboundPage === 0}
+                    className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <div className="flex-1 flex items-center justify-center">
+                    <span className="text-sm font-medium text-foreground">
+                      ( {inboundPage + 1} / {Math.max(1, Math.ceil(inboundTotalRecords / numRecords))} ) {inboundTotalRecords} total
+                    </span>
+                  </div>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <CalendarIcon className="h-5 w-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setInboundPage(prev => prev + 1)}
+                    disabled={(inboundPage + 1) * numRecords >= inboundTotalRecords}
+                    className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
+
+              {activeTab === "pickup" && pickupTransactions.length > 0 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPickupPage(prev => Math.max(0, prev - 1))}
+                    disabled={pickupPage === 0}
+                    className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <div className="flex-1 flex items-center justify-center">
+                    <span className="text-sm font-medium text-foreground">
+                      ( {pickupPage + 1} / {Math.max(1, Math.ceil(pickupTotalRecords / numRecords))} ) {pickupTotalRecords} total
+                    </span>
+                  </div>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                      >
+                        <CalendarIcon className="h-5 w-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setPickupPage(prev => prev + 1)}
+                    disabled={(pickupPage + 1) * numRecords >= pickupTotalRecords}
+                    className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Scrollable Content Area - Only Transaction Cards */}
+            <div className="flex-1 overflow-y-auto space-y-4 pb-4">
               {activeTab === "inbound" ? (
                 isLoadingInbound ? (
                   <div className="flex items-center justify-center min-h-[400px]">
@@ -365,82 +466,6 @@ const AdminHistory = () => {
                   </div>
                 )
               )}
-              </div>
-
-              {/* Pagination at End of List */}
-              <div className="flex-shrink-0 border-t border-border bg-background py-4 px-4 mt-4">
-                {activeTab === "inbound" && inboundTransactions.length > 0 && (
-                  <Pagination>
-                    <PaginationContent className="justify-center items-center gap-2">
-                      <PaginationItem>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setInboundPage(prev => Math.max(0, prev - 1))}
-                          disabled={inboundPage === 0}
-                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
-                        </Button>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <span className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-md font-medium">
-                          Page {inboundPage + 1} of {Math.max(1, Math.ceil(inboundTotalRecords / numRecords))} ({inboundTotalRecords} total)
-                        </span>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setInboundPage(prev => prev + 1)}
-                          disabled={(inboundPage + 1) * numRecords >= inboundTotalRecords}
-                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-
-                {activeTab === "pickup" && pickupTransactions.length > 0 && (
-                  <Pagination>
-                    <PaginationContent className="justify-center items-center gap-2">
-                      <PaginationItem>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setPickupPage(prev => Math.max(0, prev - 1))}
-                          disabled={pickupPage === 0}
-                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Previous
-                        </Button>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <span className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-md font-medium">
-                          Page {pickupPage + 1} of {Math.max(1, Math.ceil(pickupTotalRecords / numRecords))} ({pickupTotalRecords} total)
-                        </span>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setPickupPage(prev => prev + 1)}
-                          disabled={(pickupPage + 1) * numRecords >= pickupTotalRecords}
-                          className="gap-1 hover:bg-accent hover:text-accent-foreground transition-colors"
-                        >
-                          Next
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                )}
-              </div>
             </div>
           </div>
         </main>
