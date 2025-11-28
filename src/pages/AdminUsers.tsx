@@ -35,7 +35,7 @@ const AdminUsers = () => {
       setError("");
       
       console.log("Fetching users from API...");
-      const response = await fetch('https://robotmanagerv1test.qikpod.com/user/users', {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/users`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -116,7 +116,7 @@ const AdminUsers = () => {
     try {
       console.log("Updating user role:", selectedUser.user_phone, "to:", newUserRole);
       
-      const response = await fetch(`https://robotmanagerv1test.qikpod.com/user/user?user_phone=${selectedUser.user_phone}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/user?user_phone=${selectedUser.user_phone}`, {
         method: 'PATCH',
         headers: {
           'accept': 'application/json',

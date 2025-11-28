@@ -72,7 +72,7 @@ const StationView = () => {
 
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_status=tray_ready_to_use&order_by_field=updated_at&order_by_type=ASC`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_status=tray_ready_to_use&order_by_field=updated_at&order_by_type=ASC`,
         {
           method: 'GET',
           headers: {
@@ -124,7 +124,7 @@ const StationView = () => {
     
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_status=inprogress&order_by_field=updated_at&order_by_type=ASC`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_status=inprogress&order_by_field=updated_at&order_by_type=ASC`,
         {
           method: 'GET',
           headers: {
@@ -195,7 +195,7 @@ const StationView = () => {
     
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders/complete?record_id=${pendingOrder.id}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders/complete?record_id=${pendingOrder.id}`,
         {
           method: 'PATCH',
           headers: {

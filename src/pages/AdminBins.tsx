@@ -63,7 +63,7 @@ const AdminBins = () => {
       setError("");
       
       console.log("Fetching bins from API...");
-      const response = await fetch('https://robotmanagerv1test.qikpod.com/nanostore/trays?order_by_field=updated_at&order_by_type=ASC', {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/nanostore/trays?order_by_field=updated_at&order_by_type=ASC`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -135,7 +135,7 @@ const AdminBins = () => {
       setIsLoadingItems(true);
       
       console.log("Fetching bin items for:", binId);
-      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/trays_for_order?tray_id=${binId}&return_item=true&num_records=100&offset=0&order_flow=fifo`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/nanostore/trays_for_order?tray_id=${binId}&return_item=true&num_records=100&offset=0&order_flow=fifo`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',

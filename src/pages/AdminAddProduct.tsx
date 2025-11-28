@@ -57,7 +57,7 @@ const AdminAddProduct = () => {
 
       console.log("Adding item:", { itemId, itemDescription });
       
-      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/item?item_id=${encodeURIComponent(itemId)}&item_description=${encodeURIComponent(itemDescription)}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/nanostore/item?item_id=${encodeURIComponent(itemId)}&item_description=${encodeURIComponent(itemDescription)}`, {
         method: 'POST',
         headers: {
           'accept': 'application/json',

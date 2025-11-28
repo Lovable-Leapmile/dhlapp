@@ -59,7 +59,7 @@ const AdminHistory = () => {
       setIsLoadingInbound(true);
       
       const offset = inboundPage * numRecords;
-      let apiUrl = `https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC`;
+      let apiUrl = `${import.meta.env.VITE_BASE_URL}/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC`;
       
       // When date is selected, fetch all records to apply client-side filtering
       if (selectedDate) {
@@ -150,7 +150,7 @@ const AdminHistory = () => {
       setIsLoadingPickup(true);
       
       const offset = pickupPage * numRecords;
-      let apiUrl = `https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC`;
+      let apiUrl = `${import.meta.env.VITE_BASE_URL}/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC`;
       
       // When date is selected, fetch all records to apply client-side filtering
       if (selectedDate) {
@@ -263,7 +263,7 @@ const AdminHistory = () => {
   // Fetch available dates for calendar
   const fetchAvailableDates = async () => {
     try {
-      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=${activeTab}&num_records=1000`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/nanostore/transactions?transaction_type=${activeTab}&num_records=1000`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',

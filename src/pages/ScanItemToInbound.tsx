@@ -62,7 +62,7 @@ const ScanItemToInbound = () => {
         if (pollingMode === 'inprogress') {
           // Check inprogress status
           const response = await fetch(
-            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+            `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
             {
               method: 'GET',
               headers: {
@@ -101,7 +101,7 @@ const ScanItemToInbound = () => {
             
             try {
               const readyResponse = await fetch(
-                `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+                `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
                 {
                   method: 'GET',
                   headers: {
@@ -134,7 +134,7 @@ const ScanItemToInbound = () => {
         } else if (pollingMode === 'ready_to_use') {
           // Check tray_ready_to_use status - continue polling until API failure
           const response = await fetch(
-            `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+            `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
             {
               method: 'GET',
               headers: {
@@ -171,7 +171,7 @@ const ScanItemToInbound = () => {
           
           try {
             const readyResponse = await fetch(
-              `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+              `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
               {
                 method: 'GET',
                 headers: {
@@ -263,7 +263,7 @@ const ScanItemToInbound = () => {
 
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transactions?order_id=${orderRecord.id}&order_by_field=updated_at&order_by_type=DESC`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/transactions?order_id=${orderRecord.id}&order_by_field=updated_at&order_by_type=DESC`,
         {
           method: 'GET',
           headers: {
@@ -331,7 +331,7 @@ const ScanItemToInbound = () => {
     try {
       // Patch order to update and reset timer
       const patchResponse = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?record_id=${orderRecord.id}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?record_id=${orderRecord.id}`,
         {
           method: 'PATCH',
           headers: {
@@ -365,7 +365,7 @@ const ScanItemToInbound = () => {
 
       // Create transaction
       const transactionResponse = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value}&transaction_item_quantity=1&transaction_type=inbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value}&transaction_item_quantity=1&transaction_type=inbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
         {
           method: 'POST',
           headers: {
@@ -415,7 +415,7 @@ const ScanItemToInbound = () => {
 
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/transaction?record_id=${itemToDelete.id}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/transaction?record_id=${itemToDelete.id}`,
         {
           method: 'DELETE',
           headers: {
@@ -458,7 +458,7 @@ const ScanItemToInbound = () => {
 
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders/complete?record_id=${orderRecord.id}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders/complete?record_id=${orderRecord.id}`,
         {
           method: 'PATCH',
           headers: {

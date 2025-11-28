@@ -54,7 +54,7 @@ const SelectPickupBin = () => {
         console.log("Fetching bins with token:", authToken);
         
         const response = await fetch(
-          "https://robotmanagerv1test.qikpod.com/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=DESC",
+          `${import.meta.env.VITE_BASE_URL}/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=DESC`,
           {
             method: "GET",
             headers: {
@@ -146,7 +146,7 @@ const SelectPickupBin = () => {
     
     try {
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/nanostore/orders?tray_id=${selectedBin}&user_id=${userId}&auto_complete_time=${trayStayTime}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${selectedBin}&user_id=${userId}&auto_complete_time=${trayStayTime}`,
         {
           method: 'POST',
           headers: {

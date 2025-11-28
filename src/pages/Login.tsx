@@ -26,7 +26,7 @@ const Login = () => {
     try {
       // Call validation API
       const response = await fetch(
-        `https://robotmanagerv1test.qikpod.com/user/validate?user_phone=${mobileNumber}&password=${password}`,
+        `${import.meta.env.VITE_BASE_URL}/user/validate?user_phone=${mobileNumber}&password=${password}`,
         {
           method: 'GET',
           headers: {
