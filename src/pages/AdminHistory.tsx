@@ -48,6 +48,8 @@ const AdminHistory = () => {
   const [inboundTotalRecords, setInboundTotalRecords] = useState(0);
   const [pickupTotalRecords, setPickupTotalRecords] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [availableDates, setAvailableDates] = useState<Set<string>>(new Set());
+  const [showNoTransactionMessage, setShowNoTransactionMessage] = useState(false);
   const numRecords = 10;
 
   const authToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhY2wiOiJhZG1pbiIsImV4cCI6MTkwNzIyMTMyOX0.yl2G3oNWNgXXyCyCLnj8IW0VZ2TezllqSdnhSyLg9NQ";
@@ -57,8 +59,24 @@ const AdminHistory = () => {
       setIsLoadingInbound(true);
       
       const offset = inboundPage * numRecords;
-      console.log("Fetching inbound transactions...", { offset, numRecords, page: inboundPage });
-      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC&num_records=${numRecords}&offset=${offset}`, {
+      let apiUrl = `https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=inbound&order_by_field=updated_at&order_by_type=DESC`;
+      
+      // When date is selected, fetch all records to apply client-side filtering
+      if (selectedDate) {
+        apiUrl += `&num_records=1000`; // Fetch more records for filtering
+      } else {
+        apiUrl += `&num_records=${numRecords}&offset=${offset}`;
+      }
+      
+      // Add date filter if selected - try different approaches
+      if (selectedDate) {
+        const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+        // Try generic date parameter first
+        apiUrl += `&date=${formattedDate}`;
+      }
+      
+      console.log("Fetching inbound transactions...", { offset, numRecords, page: inboundPage, selectedDate, formattedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null });
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -75,7 +93,7 @@ const AdminHistory = () => {
       const data = await response.json();
       console.log("Inbound API Response Data:", data);
       
-      // Handle API response structure
+      // Handle API response structure and apply client-side date filter if needed
       let transactions = [];
       let totalCount = 0;
       
@@ -92,6 +110,26 @@ const AdminHistory = () => {
             transactions = possibleArrays[0];
             totalCount = transactions.length;
           }
+        }
+      }
+      
+      // Apply client-side date filter if API doesn't support it
+      if (selectedDate && transactions.length > 0) {
+        const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+        const allFilteredTransactions = transactions.filter(transaction => {
+          const transactionDate = transaction.created_at ? transaction.created_at.split('T')[0] : null;
+          return transactionDate === selectedDateStr;
+        });
+        
+        // Apply pagination to filtered results
+        totalCount = allFilteredTransactions.length;
+        const paginatedTransactions = allFilteredTransactions.slice(inboundPage * numRecords, (inboundPage + 1) * numRecords);
+        transactions = paginatedTransactions;
+        
+        // Show no transaction message if no results
+        if (totalCount === 0) {
+          setShowNoTransactionMessage(true);
+          setTimeout(() => setShowNoTransactionMessage(false), 3000);
         }
       }
       
@@ -112,8 +150,24 @@ const AdminHistory = () => {
       setIsLoadingPickup(true);
       
       const offset = pickupPage * numRecords;
-      console.log("Fetching pickup transactions...", { offset, numRecords, page: pickupPage });
-      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC&num_records=${numRecords}&offset=${offset}`, {
+      let apiUrl = `https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=outbound&order_by_field=updated_at&order_by_type=DESC`;
+      
+      // When date is selected, fetch all records to apply client-side filtering
+      if (selectedDate) {
+        apiUrl += `&num_records=1000`; // Fetch more records for filtering
+      } else {
+        apiUrl += `&num_records=${numRecords}&offset=${offset}`;
+      }
+      
+      // Add date filter if selected - try different approaches
+      if (selectedDate) {
+        const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+        // Try generic date parameter first
+        apiUrl += `&date=${formattedDate}`;
+      }
+      
+      console.log("Fetching pickup transactions...", { offset, numRecords, page: pickupPage, selectedDate, formattedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null });
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -130,7 +184,7 @@ const AdminHistory = () => {
       const data = await response.json();
       console.log("Pickup API Response Data:", data);
       
-      // Handle API response structure
+      // Handle API response structure and apply client-side date filter if needed
       let transactions = [];
       let totalCount = 0;
       
@@ -148,6 +202,20 @@ const AdminHistory = () => {
             totalCount = transactions.length;
           }
         }
+      }
+      
+      // Apply client-side date filter if API doesn't support it
+      if (selectedDate && transactions.length > 0) {
+        const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+        const allFilteredTransactions = transactions.filter(transaction => {
+          const transactionDate = transaction.created_at ? transaction.created_at.split('T')[0] : null;
+          return transactionDate === selectedDateStr;
+        });
+        
+        // Apply pagination to filtered results
+        totalCount = allFilteredTransactions.length;
+        const paginatedTransactions = allFilteredTransactions.slice(pickupPage * numRecords, (pickupPage + 1) * numRecords);
+        transactions = paginatedTransactions;
       }
       
       console.log("Setting pickup data:", { transactions: transactions.length, totalCount });
@@ -168,7 +236,7 @@ const AdminHistory = () => {
     } else {
       fetchPickupTransactions();
     }
-  }, [activeTab, inboundPage, pickupPage]);
+  }, [activeTab, inboundPage, pickupPage, selectedDate]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -181,81 +249,156 @@ const AdminHistory = () => {
     });
   };
 
+  const clearDateFilter = () => {
+    setSelectedDate(undefined);
+    setShowNoTransactionMessage(false);
+    // Reset to first page when clearing filter
+    if (activeTab === "inbound") {
+      setInboundPage(0);
+    } else {
+      setPickupPage(0);
+    }
+  };
+
+  // Fetch available dates for calendar
+  const fetchAvailableDates = async () => {
+    try {
+      const response = await fetch(`https://robotmanagerv1test.qikpod.com/nanostore/transactions?transaction_type=${activeTab}&num_records=1000`, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        let transactions = [];
+        
+        if (data && typeof data === 'object') {
+          if (data.records && Array.isArray(data.records)) {
+            transactions = data.records;
+          } else if (Array.isArray(data)) {
+            transactions = data;
+          }
+        }
+        
+        // Extract unique dates
+        const dates = new Set<string>();
+        transactions.forEach(transaction => {
+          if (transaction.created_at) {
+            const dateStr = transaction.created_at.split('T')[0];
+            dates.add(dateStr);
+          }
+        });
+        
+        setAvailableDates(dates);
+      }
+    } catch (error) {
+      console.error('Error fetching available dates:', error);
+    }
+  };
+
+  // Reset pagination when date changes
+  useEffect(() => {
+    if (selectedDate) {
+      if (activeTab === "inbound") {
+        setInboundPage(0);
+      } else {
+        setPickupPage(0);
+      }
+    }
+  }, [selectedDate, activeTab]);
+
+  // Fetch available dates when tab changes
+  useEffect(() => {
+    fetchAvailableDates();
+  }, [activeTab]);
+
+  // Check if date has transactions
+  const isDateAvailable = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return availableDates.has(dateStr);
+  };
+
+  // Handle date selection with validation
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) {
+      setSelectedDate(undefined);
+      setShowNoTransactionMessage(false);
+      return;
+    }
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    if (!availableDates.has(dateStr)) {
+      setShowNoTransactionMessage(true);
+      setTimeout(() => setShowNoTransactionMessage(false), 3000);
+      return;
+    }
+    
+    setSelectedDate(date);
+    setShowNoTransactionMessage(false);
+    // Close the popover after selection
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+  };
+
   const TransactionCard = ({ transaction, type }: { transaction: Transaction; type: "inbound" | "pickup" }) => (
-    <Card className="p-4 bg-card border-border">
-      <div className="space-y-4">
+    <Card className="p-3 sm:p-4 bg-card border-border">
+      <div className="space-y-3 sm:space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {type === "inbound" ? (
-              <ArrowDown className="w-4 h-4 text-green-600" />
+              <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
             ) : (
-              <ArrowUp className="w-4 h-4 text-red-600" />
+              <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />
             )}
-            <span className="text-lg font-semibold text-foreground capitalize">{type}</span>
+            <span className="text-sm sm:text-base font-semibold text-foreground capitalize">{type}</span>
           </div>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs sm:text-sm text-muted-foreground">
             {formatDate(transaction.updated_at)}
           </span>
         </div>
         
-        {/* Details Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Details Grid - More compact on mobile */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3">
           {/* Item ID with Icon */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
-              <Tag className="w-3.5 h-3.5 text-blue-600" />
+          <div className="flex items-start gap-1.5 sm:gap-2">
+            <div className="w-4 h-4 sm:w-6 sm:h-6 bg-blue-100 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-blue-600" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <span className="text-xs text-muted-foreground block">Item ID</span>
-              <span className="text-sm font-medium text-foreground truncate">{transaction.item_id}</span>
+              <span className="text-xs sm:text-sm font-medium text-foreground truncate">{transaction.item_id}</span>
             </div>
           </div>
 
           {/* Tray ID with Icon */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
-              <Archive className="w-3.5 h-3.5 text-gray-600" />
+          <div className="flex items-start gap-1.5 sm:gap-2">
+            <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-100 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Archive className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-gray-600" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <span className="text-xs text-muted-foreground block">Tray ID</span>
-              <span className="text-sm font-medium text-foreground truncate">{transaction.tray_id}</span>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 flex-shrink-0" />
-            <div className="min-w-0">
-              <span className="text-xs text-muted-foreground block">Description</span>
-              <span className="text-sm font-medium text-foreground truncate">{transaction.item_id}</span>
+              <span className="text-xs sm:text-sm font-medium text-foreground truncate">{transaction.tray_id}</span>
             </div>
           </div>
 
           {/* Quantity */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 flex-shrink-0" />
-            <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-4 h-4 sm:w-6 sm:h-6 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
               <span className="text-xs text-muted-foreground block">Quantity</span>
-              <span className="text-sm font-medium text-foreground">{Math.abs(transaction.transaction_item_quantity)}</span>
+              <span className="text-xs sm:text-sm font-medium text-foreground">{Math.abs(transaction.transaction_item_quantity)}</span>
             </div>
           </div>
 
           {/* Username */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 flex-shrink-0" />
-            <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-4 h-4 sm:w-6 sm:h-6 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
               <span className="text-xs text-muted-foreground block">Username</span>
-              <span className="text-sm font-medium text-foreground truncate">{transaction.user_name}</span>
-            </div>
-          </div>
-
-          {/* Transaction Time */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 flex-shrink-0" />
-            <div className="min-w-0">
-              <span className="text-xs text-muted-foreground block">Transaction Time</span>
-              <span className="text-sm font-medium text-foreground">{transaction.transaction_date}</span>
+              <span className="text-xs sm:text-sm font-medium text-foreground truncate">{transaction.user_name}</span>
             </div>
           </div>
         </div>
@@ -264,48 +407,44 @@ const AdminHistory = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
+    <div className="min-h-screen flex flex-col bg-background">
       <AppBar title="Transaction History" showBack username={username} />
 
-      <div className="flex-1 flex flex-col overflow-hidden h-0">
-        <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 overflow-hidden">
-          <div className="max-w-6xl mx-auto space-y-8 h-full flex flex-col">
-            {/* Header */}
-            <div className="flex-shrink-0">
-              <div className="flex items-center justify-center gap-3">
-                <History className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
-                <h2 className="text-3xl sm:text-4xl font-semibold text-foreground text-center">
-                  Transaction History
-                </h2>
-              </div>
-            </div>
+      {/* No Transaction Message Popup */}
+      {showNoTransactionMessage && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-destructive text-destructive-foreground px-4 py-2 rounded-lg shadow-lg">
+          No {activeTab} transactions found on selected date
+        </div>
+      )}
 
+      {/* Fixed content container */}
+      <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-40 pb-4 flex-shrink-0">
+          <div className="max-w-6xl mx-auto space-y-4">
             {/* Tabs */}
-            <div className="flex-shrink-0">
-              <div className="flex justify-center w-full">
-                <div className="inline-flex rounded-lg border border-border p-1 bg-muted/20 w-full">
-                  <Button
-                    variant={activeTab === "inbound" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("inbound")}
-                    className="flex-1 px-6 py-2 rounded-md"
-                  >
-                    <ArrowDown className="w-4 h-4 mr-2" />
-                    Inbound
-                  </Button>
-                  <Button
-                    variant={activeTab === "pickup" ? "default" : "ghost"}
-                    onClick={() => setActiveTab("pickup")}
-                    className="flex-1 px-6 py-2 rounded-md"
-                  >
-                    <ArrowUp className="w-4 h-4 mr-2" />
-                    Pickup
-                  </Button>
-                </div>
+            <div className="flex justify-center w-full">
+              <div className="inline-flex rounded-lg border border-border p-1 bg-muted/20 w-full">
+                <Button
+                  variant={activeTab === "inbound" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("inbound")}
+                  className="flex-1 px-6 py-2 rounded-md"
+                >
+                  <ArrowDown className="w-4 h-4 mr-2" />
+                  Inbound
+                </Button>
+                <Button
+                  variant={activeTab === "pickup" ? "default" : "ghost"}
+                  onClick={() => setActiveTab("pickup")}
+                  className="flex-1 px-6 py-2 rounded-md"
+                >
+                  <ArrowUp className="w-4 h-4 mr-2" />
+                  Pickup
+                </Button>
               </div>
             </div>
 
-            {/* Pagination and Calendar Filter - Fixed at Top */}
-            <div className="flex-shrink-0 flex items-center justify-between gap-4 py-4 px-2 border-y border-border bg-background">
+            {/* Pagination and Calendar Filter */}
+            <div className="flex items-center justify-between gap-2 py-1 px-2 border-y border-border bg-background">
               {activeTab === "inbound" && inboundTransactions.length > 0 && (
                 <>
                   <Button
@@ -321,6 +460,7 @@ const AdminHistory = () => {
                   <div className="flex-1 flex items-center justify-center">
                     <span className="text-sm font-medium text-foreground">
                       ( {inboundPage + 1} / {Math.max(1, Math.ceil(inboundTotalRecords / numRecords))} ) {inboundTotalRecords} total
+                      {selectedDate && ` - ${format(selectedDate, 'MMM dd, yyyy')}`}
                     </span>
                   </div>
 
@@ -329,7 +469,9 @@ const AdminHistory = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className={`h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors ${
+                          selectedDate ? 'bg-accent text-accent-foreground' : ''
+                        }`}
                       >
                         <CalendarIcon className="h-5 w-5" />
                       </Button>
@@ -338,11 +480,37 @@ const AdminHistory = () => {
                       <Calendar
                         mode="single"
                         selected={selectedDate}
-                        onSelect={setSelectedDate}
+                        onSelect={handleDateSelect}
                         initialFocus
+                        modifiers={{
+                          available: isDateAvailable,
+                        }}
+                        modifiersStyles={{
+                          available: {
+                            backgroundColor: 'hsl(var(--primary))',
+                            color: 'hsl(var(--primary-foreground))',
+                            borderRadius: '6px',
+                          },
+                          disabled: {
+                            opacity: 0.3,
+                            textDecoration: 'line-through',
+                          },
+                        }}
+                        disabled={(date) => !isDateAvailable(date)}
                       />
                     </PopoverContent>
                   </Popover>
+
+                  {selectedDate && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearDateFilter}
+                      className="h-10 px-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      Clear
+                    </Button>
+                  )}
 
                   <Button
                     variant="outline"
@@ -371,6 +539,7 @@ const AdminHistory = () => {
                   <div className="flex-1 flex items-center justify-center">
                     <span className="text-sm font-medium text-foreground">
                       ( {pickupPage + 1} / {Math.max(1, Math.ceil(pickupTotalRecords / numRecords))} ) {pickupTotalRecords} total
+                      {selectedDate && ` - ${format(selectedDate, 'MMM dd, yyyy')}`}
                     </span>
                   </div>
 
@@ -379,7 +548,9 @@ const AdminHistory = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className={`h-10 w-10 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors ${
+                          selectedDate ? 'bg-accent text-accent-foreground' : ''
+                        }`}
                       >
                         <CalendarIcon className="h-5 w-5" />
                       </Button>
@@ -388,11 +559,37 @@ const AdminHistory = () => {
                       <Calendar
                         mode="single"
                         selected={selectedDate}
-                        onSelect={setSelectedDate}
+                        onSelect={handleDateSelect}
                         initialFocus
+                        modifiers={{
+                          available: isDateAvailable,
+                        }}
+                        modifiersStyles={{
+                          available: {
+                            backgroundColor: 'hsl(var(--primary))',
+                            color: 'hsl(var(--primary-foreground))',
+                            borderRadius: '6px',
+                          },
+                          disabled: {
+                            opacity: 0.3,
+                            textDecoration: 'line-through',
+                          },
+                        }}
+                        disabled={(date) => !isDateAvailable(date)}
                       />
                     </PopoverContent>
                   </Popover>
+
+                  {selectedDate && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearDateFilter}
+                      className="h-10 px-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      Clear
+                    </Button>
+                  )}
 
                   <Button
                     variant="outline"
@@ -406,9 +603,12 @@ const AdminHistory = () => {
                 </>
               )}
             </div>
+          </div>
+        </main>
 
-            {/* Scrollable Content Area - Only Transaction Cards */}
-            <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+        {/* Scrollable cards container */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto space-y-4 pb-4">
               {activeTab === "inbound" ? (
                 isLoadingInbound ? (
                   <div className="flex items-center justify-center min-h-[400px]">
@@ -433,7 +633,9 @@ const AdminHistory = () => {
                       </h2>
                     </div>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                      No inbound transactions found in the system.
+                      {selectedDate 
+                        ? `No inbound transactions found on ${format(selectedDate, 'MMM dd, yyyy')}. Try selecting a different date.`
+                        : 'No inbound transactions found in the system.'}
                     </p>
                   </div>
                 )
@@ -461,14 +663,15 @@ const AdminHistory = () => {
                       </h2>
                     </div>
                     <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                      No pickup transactions found in the system.
+                      {selectedDate 
+                        ? `No pickup transactions found on ${format(selectedDate, 'MMM dd, yyyy')}. Try selecting a different date.`
+                        : 'No pickup transactions found in the system.'}
                     </p>
                   </div>
                 )
               )}
-            </div>
           </div>
-        </main>
+        </div>
       </div>
 
       <Footer />

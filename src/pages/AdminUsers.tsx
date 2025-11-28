@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Edit, Search } from "lucide-react";
+import { Edit, Search, X } from "lucide-react";
 
 interface User {
   user_name: string;
@@ -20,6 +20,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -154,15 +155,11 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
+    <div className="min-h-screen flex flex-col bg-background pt-[140px]">
       <AppBar title="Users" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-foreground text-center mb-8">
-            User Management
-          </h1>
-          
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto space-y-4">
           {isLoading ? (
             <div className="text-center space-y-4">
               <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
@@ -184,22 +181,52 @@ const AdminUsers = () => {
               </button>
             </div>
           ) : (
-            <div className="space-y-6">
-              {/* Search and Stats */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full sm:w-auto">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-12 sm:h-14 text-base sm:text-lg w-full sm:w-80"
-                  />
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="flex justify-center items-center gap-3 mb-6 sm:mb-8">
+                <div className={`transition-all duration-300 ${
+                  isSearchExpanded ? 'w-full max-w-md' : 'w-auto'
+                }`}>
+                  {!isSearchExpanded ? (
+                    <Button
+                      onClick={() => setIsSearchExpanded(true)}
+                      variant="outline"
+                      className="h-12 sm:h-14 w-12 sm:w-14 p-0 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
+                    >
+                      <Search className="h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <div className="relative w-full">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <Search className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <Input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search users..."
+                        className="h-12 sm:h-14 pl-10 pr-10 text-base"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          setSearchTerm("");
+                          setIsSearchExpanded(false);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="text-lg sm:text-xl font-medium text-foreground">
-                  Total Users: <span className="text-red-600">{users.length}</span>
-                </div>
+              </div>
+              
+              {/* Total Users - Centered */}
+              <div className="text-center mb-6 sm:mb-8">
+                <p className="text-base sm:text-lg text-muted-foreground">
+                  {searchTerm ? "Found" : "Total"} Users: <span className="font-semibold text-foreground">{filteredUsers.length > 0 ? filteredUsers.length : users.length}</span>
+                </p>
               </div>
               
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

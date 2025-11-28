@@ -193,7 +193,7 @@ const SelectInboundBin = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
+    <div className="min-h-screen flex flex-col bg-background pt-[140px]">
       <AppBar title="Select Inbound Bin" showBack username={username} />
 
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -206,7 +206,7 @@ const SelectInboundBin = () => {
               <Button
                 onClick={() => setIsSearchExpanded(true)}
                 variant="outline"
-                className="h-12 sm:h-14 w-12 sm:w-14 p-0"
+                className="h-12 sm:h-14 w-12 sm:w-14 p-0 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
               >
                 <Search className="h-5 w-5" />
               </Button>
@@ -237,7 +237,7 @@ const SelectInboundBin = () => {
           <Button
             variant={filterType === "empty" ? "default" : "outline"}
             onClick={() => setFilterType(filterType === "all" ? "empty" : "all")}
-            className="h-12 sm:h-14 px-4 sm:px-6"
+            className="h-12 sm:h-14 px-4 sm:px-6 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
           >
             <Filter className="mr-2 h-5 w-5" />
             {filterType === "all" ? "All" : "Empty"}
@@ -289,7 +289,7 @@ const SelectInboundBin = () => {
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent className="max-w-md w-full">
+        <AlertDialogContent className="max-w-md l-4 r-4 sm:mx-0 sm:l-0 sm:r-0 max-w-[calc(100vw-2rem)] sm:max-w-md">
           <AlertDialogHeader className="text-center">
             <AlertDialogTitle className="text-center">Confirm Bin Selection</AlertDialogTitle>
             <AlertDialogDescription className="space-y-4 text-center">

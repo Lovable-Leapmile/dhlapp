@@ -6,7 +6,7 @@ import { BinCard } from "@/components/BinCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Package, Search, ArrowLeft, PackageOpen } from "lucide-react";
+import { Package, Search, ArrowLeft, PackageOpen, X } from "lucide-react";
 
 interface Bin {
   id: number;
@@ -48,6 +48,7 @@ const AdminBins = () => {
   const [filteredBins, setFilteredBins] = useState<Bin[]>([]);
   const [binItems, setBinItems] = useState<BinItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
@@ -207,37 +208,59 @@ const AdminBins = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
+    <div className="min-h-screen flex flex-col bg-background pt-[140px]">
       <AppBar title="Bins" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="flex items-center justify-center gap-3">
-            <Package className="h-8 w-8 sm:h-10 sm:w-10 text-red-600" />
-            <h2 className="text-3xl sm:text-4xl font-semibold text-foreground text-center">
-              Bin Management
-            </h2>
-          </div>
-
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto space-y-4">
           {!showBinDetails ? (
             /* Bin List View */
-            <div className="space-y-6">
-              {/* Search and Stats */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full sm:w-auto">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search bins..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 h-12 sm:h-14 text-base sm:text-lg w-full sm:w-80"
-                  />
+            <div className="space-y-4">
+              {/* Search Bar and Stats */}
+              <div className="flex justify-center items-center gap-3 mb-6 sm:mb-8">
+                <div className={`transition-all duration-300 ${
+                  isSearchExpanded ? 'w-full max-w-md' : 'w-auto'
+                }`}>
+                  {!isSearchExpanded ? (
+                    <Button
+                      onClick={() => setIsSearchExpanded(true)}
+                      variant="outline"
+                      className="h-12 sm:h-14 w-12 sm:w-14 p-0 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
+                    >
+                      <Search className="h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <div className="relative w-full">
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <Search className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <Input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search bin ID..."
+                        className="h-12 sm:h-14 pl-10 pr-10 text-base"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          setSearchTerm("");
+                          setIsSearchExpanded(false);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="text-lg sm:text-xl font-medium text-foreground">
-                  Total Bins: <span className="text-red-600">{bins.length}</span>
-                </div>
+              </div>
+              
+              {/* Total Bins - Centered */}
+              <div className="text-center mb-6 sm:mb-8">
+                <p className="text-base sm:text-lg text-muted-foreground">
+                  {searchTerm ? "Found" : "Total"} Bins: <span className="font-semibold text-foreground">{filteredBins.length > 0 ? filteredBins.length : bins.length}</span>
+                </p>
               </div>
 
               {/* Bins Grid */}
@@ -250,10 +273,7 @@ const AdminBins = () => {
                 </div>
               ) : filteredBins.length > 0 ? (
                 <>
-                  <div className="text-sm text-muted-foreground mb-4">
-                    Rendering {filteredBins.length} bins from API
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-8">
                     {filteredBins.map((bin) => (
                       <div
                         key={bin.id}
