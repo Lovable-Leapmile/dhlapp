@@ -1,24 +1,21 @@
 /**
- * API configuration utility for handling base URL across different environments
+ * API configuration utility for handling base URL
  * 
- * This utility provides a robust way to handle API base URLs that works in:
+ * This utility requires VITE_BASE_URL to be defined in the .env file
  * - Local development (using .env files)
  * - Lovable deployment (using environment variables)
- * - Production builds with fallbacks
+ * - No fallback URLs - environment variable is mandatory
  */
 
-// Get the base URL from environment variables with fallbacks
+// Get the base URL from environment variables
 export const getBaseUrl = (): string => {
-  // Try Vite environment variable first (for local development)
   const viteBaseUrl = import.meta.env.VITE_BASE_URL;
   
-  // Fallback for production/Lovable deployment
-  // In Lovable, you should set VITE_BASE_URL as an environment variable
-  // If not set, use a sensible default
-  const fallbackUrl = 'https://robotmanagerv1test.qikpod.com';
+  if (!viteBaseUrl) {
+    throw new Error("VITE_BASE_URL is not defined in the .env file.");
+  }
   
-  // Return the first available URL
-  return viteBaseUrl || fallbackUrl;
+  return viteBaseUrl;
 };
 
 /**
@@ -38,7 +35,9 @@ export const getApiUrl = (endpoint: string): string => {
  * API configuration object for easy access
  */
 export const API_CONFIG = {
-  baseUrl: getBaseUrl(),
+  get baseUrl() {
+    return getBaseUrl();
+  },
   getApiUrl,
   
   // Common endpoints for reference

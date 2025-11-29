@@ -2,9 +2,13 @@
 
 ## Environment Variables Configuration
 
+### ⚠️ **MANDATORY REQUIREMENT**
+
+The application **REQUIRES** `VITE_BASE_URL` to be defined in the environment variables. **No fallback URLs are provided.** If the environment variable is missing, the application will throw an error and stop working.
+
 ### For Lovable Deployment
 
-To ensure your application works correctly when deployed to Lovable, you need to configure the `VITE_BASE_URL` environment variable in your Lovable project settings.
+To ensure your application works correctly when deployed to Lovable, you **MUST** configure the `VITE_BASE_URL` environment variable in your Lovable project settings.
 
 #### Steps to Configure Environment Variables in Lovable:
 
@@ -16,7 +20,7 @@ To ensure your application works correctly when deployed to Lovable, you need to
 
 4. **Add the environment variable**:
    - **Name**: `VITE_BASE_URL`
-   - **Value**: `https://robotmanagerv1test.qikpod.com`
+   - **Value**: `https://testhostsushil.leapmile.com`
 
 5. **Save the configuration**: Make sure to save your changes
 
@@ -24,48 +28,48 @@ To ensure your application works correctly when deployed to Lovable, you need to
 
 ### How the API Configuration Works
 
-The application now uses a robust API configuration system (`src/utils/api.ts`) that:
+The application now uses a **strict** API configuration system (`src/utils/api.ts`) that:
 
-1. **First tries** to read from Vite environment variables (`import.meta.env.VITE_BASE_URL`)
-2. **Falls back** to a hardcoded default value if the environment variable is not set
+1. **Requires** `VITE_BASE_URL` to be defined in environment variables
+2. **Throws an error** if the environment variable is missing
 3. **Provides** utility functions for consistent API URL construction
+4. **No fallback URLs** - environment variable is mandatory
 
-### Environment Variable Priority
+### Environment Variable Requirement
 
 ```
-1. VITE_BASE_URL (from Lovable environment variables) - Highest priority
-2. VITE_BASE_URL (from local .env file) - Local development
-3. Default fallback value - Lowest priority
+VITE_BASE_URL=https://testhostsushil.leapmile.com
 ```
+
+**If VITE_BASE_URL is missing → the app will throw an error and stop.**
 
 ### Local Development
 
 For local development, ensure your `.env` file contains:
 
 ```env
-VITE_BASE_URL=https://robotmanagerv1test.qikpod.com
+VITE_BASE_URL=https://testhostsushil.leapmile.com
 ```
 
 ### Troubleshooting
 
-#### If API calls fail after deployment:
+#### If the application fails to start:
 
 1. **Check environment variables**: Ensure `VITE_BASE_URL` is properly set in Lovable
-2. **Verify deployment**: Make sure the latest code with the API utility is deployed
-3. **Check browser console**: Look for any network errors or API configuration issues
-4. **Test the API endpoint**: Verify that the base URL is accessible and responding
+2. **Verify .env file**: Make sure the `.env` file exists and contains the correct variable
+3. **Check browser console**: Look for the error message: `"VITE_BASE_URL is not defined in the .env file."`
 
 #### Common Issues:
 
-- **Missing environment variable**: The app will use the fallback URL, which should work but may not be the intended endpoint
-- **Incorrect URL format**: Ensure the URL doesn't have trailing slashes
-- **Network restrictions**: Verify the API endpoint is accessible from the Lovable deployment environment
+- **Missing environment variable**: The app will crash with an error message
+- **Incorrect variable name**: Must be exactly `VITE_BASE_URL`
+- **Network restrictions**: Verify the API endpoint is accessible from the deployment environment
 
 ### Files Modified
 
-The following files were updated to use the new API utility system:
+The following files were updated to use the strict API utility system:
 
-- `src/utils/api.ts` - New API configuration utility
+- `src/utils/api.ts` - Updated to require VITE_BASE_URL without fallbacks
 - `src/pages/Login.tsx`
 - `src/pages/AdminUsers.tsx`
 - `src/pages/AdminAddProduct.tsx`
@@ -79,8 +83,8 @@ The following files were updated to use the new API utility system:
 
 ### Benefits of This Approach
 
-1. **Environment Agnostic**: Works in local development and production
-2. **Fallback Protection**: Continues working even if environment variables are missing
-3. **Centralized Configuration**: Easy to manage and update API endpoints
-4. **Type Safety**: Better TypeScript support with utility functions
-5. **Consistency**: All API calls use the same URL construction logic
+1. **Environment Strictness**: Forces proper environment configuration
+2. **No Hidden Defaults**: No unexpected behavior from fallback URLs
+3. **Fail Fast**: Application crashes immediately if configuration is missing
+4. **Clear Requirements**: Obvious what environment variables are needed
+5. **Type Safety**: Better TypeScript support with utility functions
