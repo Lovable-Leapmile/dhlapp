@@ -224,10 +224,10 @@ const StationView = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[140px]">
+    <div className="min-h-screen flex flex-col bg-background pt-[180px]">
       <AppBar title="Station View" showBack username={username} />
 
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -235,7 +235,7 @@ const StationView = () => {
               <TabsTrigger value="inprogress">In Progress trays</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="station" className="mt-4">
+            <TabsContent value="station" className="mt-6">
               {isLoading ? (
                 <div className="flex items-center justify-center min-h-[400px]">
                   <div className="animate-pulse text-center">
@@ -311,7 +311,7 @@ const StationView = () => {
               )}
             </TabsContent>
             
-            <TabsContent value="inprogress" className="mt-4">
+            <TabsContent value="inprogress" className="mt-6">
               {isLoadingInProgress ? (
                 <div className="flex items-center justify-center min-h-[400px]">
                   <div className="animate-pulse text-center">
