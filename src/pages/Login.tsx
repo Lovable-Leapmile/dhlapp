@@ -26,17 +26,22 @@ const Login = () => {
     
     try {
       // Call validation API
-      const response = await fetch(
-        getApiUrl(`/user/validate?user_phone=${mobileNumber}&password=${password}`),
-        {
-          method: 'GET',
-          headers: {
-            'accept': 'application/json',
-          },
-        }
-      );
+      const apiUrl = getApiUrl(`/user/validate?user_phone=${mobileNumber}&password=${password}`);
+      console.log('Login API URL:', apiUrl);
+      console.log('Attempting to login with phone:', mobileNumber);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+        },
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
 
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok && data.user_name) {
         // Store user info and auth token in session
@@ -47,9 +52,11 @@ const Login = () => {
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {
+        console.error('Login failed - Invalid credentials or missing user_name');
         toast.error("Invalid credentials. Please try again.");
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error("Login failed. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
