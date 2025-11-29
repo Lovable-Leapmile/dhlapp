@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Edit, Search, X, Users } from "lucide-react";
+import { getApiUrl } from "@/utils/api";
 
 interface User {
   user_name: string;
@@ -33,7 +34,7 @@ const AdminUsers = () => {
       setError("");
       
       console.log("Fetching users from API...");
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/users`, {
+      const response = await fetch(getApiUrl('/user/users'), {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -114,7 +115,7 @@ const AdminUsers = () => {
     try {
       console.log("Updating user role:", selectedUser.user_phone, "to:", newUserRole);
       
-      const response = await fetch(`${import.meta.env.VITE_BASE_URL}/user/user?user_phone=${selectedUser.user_phone}`, {
+      const response = await fetch(getApiUrl(`/user/user?user_phone=${selectedUser.user_phone}`), {
         method: 'PATCH',
         headers: {
           'accept': 'application/json',

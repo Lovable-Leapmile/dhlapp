@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import dhlLogo from "@/assets/dhl-logo.png";
 import { Warehouse } from "lucide-react";
+import { getApiUrl } from "@/utils/api";
 
 const Login = () => {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -26,7 +27,7 @@ const Login = () => {
     try {
       // Call validation API
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/user/validate?user_phone=${mobileNumber}&password=${password}`,
+        getApiUrl(`/user/validate?user_phone=${mobileNumber}&password=${password}`),
         {
           method: 'GET',
           headers: {

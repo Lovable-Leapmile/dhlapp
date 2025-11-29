@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import bin1 from "@/assets/bin1.png";
 import { Search, X, Filter, Loader2, Package, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { getApiUrl } from "@/utils/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,7 +54,7 @@ const SelectPickupBin = () => {
         console.log("Fetching bins with token:", authToken);
         
         const response = await fetch(
-          `${import.meta.env.VITE_BASE_URL}/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=DESC`,
+          getApiUrl(`/nanostore/trays?tray_status=active&order_by_field=updated_at&order_by_type=DESC`),
           {
             method: "GET",
             headers: {
@@ -145,7 +146,7 @@ const SelectPickupBin = () => {
     
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${selectedBin.id}&user_id=${userId}&auto_complete_time=${trayStayTime}`,
+        getApiUrl(`/nanostore/orders?tray_id=${selectedBin.id}&user_id=${userId}&auto_complete_time=${trayStayTime}`),
         {
           method: 'POST',
           headers: {

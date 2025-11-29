@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Barcode, Camera, X, ArrowRight, Package, PackageCheck, Loader2, PackageSearch } from "lucide-react";
 import { toast } from "sonner";
 import robotAnimation from "@/assets/robot-bin-animation.gif";
+import { getApiUrl } from "@/utils/api";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +63,7 @@ const ScanItemToPickup = () => {
         if (pollingMode === 'inprogress') {
           // Check inprogress status
           const response = await fetch(
-            `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+            getApiUrl(`/nanostore/orders?tray_id=${binId}&tray_status=inprogress&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`),
             {
               method: 'GET',
               headers: {
@@ -101,7 +102,7 @@ const ScanItemToPickup = () => {
             
             try {
               const readyResponse = await fetch(
-                `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+                getApiUrl(`/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`),
                 {
                   method: 'GET',
                   headers: {
@@ -134,7 +135,7 @@ const ScanItemToPickup = () => {
         } else if (pollingMode === 'ready_to_use') {
           // Check tray_ready_to_use status - continue polling until API failure
           const response = await fetch(
-            `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+            getApiUrl(`/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`),
             {
               method: 'GET',
               headers: {
@@ -171,7 +172,7 @@ const ScanItemToPickup = () => {
           
           try {
             const readyResponse = await fetch(
-              `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`,
+              getApiUrl(`/nanostore/orders?tray_id=${binId}&tray_status=tray_ready_to_use&user_id=${userId}&order_by_field=updated_at&order_by_type=DESC&num_records=1`),
               {
                 method: 'GET',
                 headers: {
@@ -263,7 +264,7 @@ const ScanItemToPickup = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/transactions?order_id=${orderRecord.id}&order_by_field=updated_at&order_by_type=DESC`,
+        getApiUrl(`/nanostore/transactions?order_id=${orderRecord.id}&order_by_field=updated_at&order_by_type=DESC`),
         {
           method: 'GET',
           headers: {
@@ -331,7 +332,7 @@ const ScanItemToPickup = () => {
     try {
       // Patch order to update and reset timer
       const patchResponse = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?record_id=${orderRecord.id}`,
+        getApiUrl(`/nanostore/orders?record_id=${orderRecord.id}`),
         {
           method: 'PATCH',
           headers: {
@@ -365,7 +366,7 @@ const ScanItemToPickup = () => {
 
       // Create transaction
       const transactionResponse = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value}&transaction_item_quantity=-1&transaction_type=outbound&transaction_date=${new Date().toISOString().split('T')[0]}`,
+        getApiUrl(`/nanostore/transaction?order_id=${orderRecord.id}&item_id=${value}&transaction_item_quantity=-1&transaction_type=outbound&transaction_date=${new Date().toISOString().split('T')[0]}`),
         {
           method: 'POST',
           headers: {
@@ -415,7 +416,7 @@ const ScanItemToPickup = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/transaction?record_id=${itemToDelete.id}`,
+        getApiUrl(`/nanostore/transaction?record_id=${itemToDelete.id}`),
         {
           method: 'DELETE',
           headers: {
@@ -458,7 +459,7 @@ const ScanItemToPickup = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/orders/complete?record_id=${orderRecord.id}`,
+        getApiUrl(`/nanostore/orders/complete?record_id=${orderRecord.id}`),
         {
           method: 'PATCH',
           headers: {
