@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
-import { Footer } from "@/components/Footer";
 import { BinCard } from "@/components/BinCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, X, Filter, Loader2, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import bin1 from "@/assets/bin1.png";
+import { Search, X, Filter, Loader2, Package, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -27,11 +27,10 @@ interface Bin {
 const SelectPickupBin = () => {
   const navigate = useNavigate();
   const username = sessionStorage.getItem("username") || "Guest";
-  const [selectedBin, setSelectedBin] = useState<string | null>(null);
+  const [selectedBin, setSelectedBin] = useState<Bin | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [trayStayTime, setTrayStayTime] = useState(2);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "empty">("all");
   const [allBins, setAllBins] = useState<Bin[]>([]);
@@ -125,8 +124,8 @@ const SelectPickupBin = () => {
     bins = bins.filter((bin) => bin.itemCount === 0);
   }
 
-  const handleBinClick = (binId: string) => {
-    setSelectedBin(binId);
+  const handleBinClick = (bin: Bin) => {
+    setSelectedBin(bin);
     setShowConfirm(true);
   };
 
@@ -146,7 +145,7 @@ const SelectPickupBin = () => {
     
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${selectedBin}&user_id=${userId}&auto_complete_time=${trayStayTime}`,
+        `${import.meta.env.VITE_BASE_URL}/nanostore/orders?tray_id=${selectedBin.id}&user_id=${userId}&auto_complete_time=${trayStayTime}`,
         {
           method: 'POST',
           headers: {
@@ -166,12 +165,12 @@ const SelectPickupBin = () => {
       
       // Store order info in session for scan items page
       sessionStorage.setItem("currentOrderId", orderData.id?.toString() || "");
-      sessionStorage.setItem("currentTrayId", selectedBin);
+      sessionStorage.setItem("currentTrayId", selectedBin.id);
       sessionStorage.setItem("currentUserId", userId);
       sessionStorage.setItem("trayStayTime", trayStayTime.toString());
       
       toast.success("Order created successfully!");
-      navigate("/pickup/scan-items", { state: { binId: selectedBin, orderId: orderData.id } });
+      navigate("/pickup/scan-items", { state: { binId: selectedBin.id, orderId: orderData.id } });
     } catch (error) {
       toast.error("Failed to create order. Please try again.");
       console.error("Error creating order:", error);
@@ -187,107 +186,107 @@ const SelectPickupBin = () => {
     }
   };
 
-  const toggleSearch = () => {
-    setIsSearchExpanded(!isSearchExpanded);
-    if (isSearchExpanded) {
-      setSearchQuery("");
-    }
+  const handleClearSearch = () => {
+    setSearchQuery("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[140px]">
+    <div className="min-h-screen bg-background pt-[140px]">
       <AppBar title="Select Pickup Bin" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Search Bar and Filter */}
-        <div className="flex justify-center items-center gap-3 mb-6 sm:mb-8">
-          <div className={`transition-all duration-300 ${
-            isSearchExpanded ? 'w-full max-w-md' : 'w-auto'
-          }`}>
-            {!isSearchExpanded ? (
-              <Button
-                onClick={toggleSearch}
-                variant="outline"
-                className="h-12 sm:h-14 w-12 sm:w-14 p-0 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
-              >
-                <Search className="h-5 w-5" />
-              </Button>
-            ) : (
-              <div className="relative w-full">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Search className="h-5 w-5 text-muted-foreground" />
+      {/* Fixed White Div with Search and Stats */}
+      <div className="fixed top-[142px] left-0 right-0 bg-white border-b border-gray-200 z-40 shadow-sm -mt-[6px]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                 </div>
                 <Input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search bin ID..."
-                  className="h-12 sm:h-14 pl-10 pr-10 text-base"
-                  autoFocus
+                  className="h-9 sm:h-12 pl-8 sm:pl-10 pr-8 sm:pr-10 text-sm sm:text-base w-full"
                 />
-                <button
-                  onClick={toggleSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                {searchQuery && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                )}
               </div>
-            )}
-          </div>
-          
-          {/* Filter Button */}
-          <Button
-            variant={filterType === "empty" ? "default" : "outline"}
-            onClick={() => setFilterType(filterType === "all" ? "empty" : "all")}
-            className="h-12 sm:h-14 px-4 sm:px-6 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
-          >
-            <Filter className="mr-2 h-5 w-5" />
-            {filterType === "all" ? "All" : "Empty"}
-          </Button>
-        </div>
-
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-12 w-12 animate-spin text-accent mb-4" />
-            <p className="text-muted-foreground">Loading bins...</p>
-          </div>
-        ) : (
-          <>
-            {/* Total Bins */}
-            <div className="mb-6 sm:mb-8">
-              <p className="text-center text-base sm:text-lg text-muted-foreground">
-                {bins.length} bins available
-              </p>
+              
+              {/* Filter Button */}
+              <Button
+                variant={filterType === "empty" ? "default" : "outline"}
+                onClick={() => setFilterType(filterType === "all" ? "empty" : "all")}
+                className="h-9 sm:h-12 px-3 sm:px-6 text-sm sm:text-base bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm flex-shrink-0"
+              >
+                <Filter className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">{filterType === "all" ? "All" : "Empty"}</span>
+                <span className="sm:hidden">{filterType === "all" ? "A" : "E"}</span>
+              </Button>
+              
+              {/* Total Bins Label */}
+              <div className="text-sm sm:text-lg font-medium text-foreground whitespace-nowrap">
+                Total Bins: <span className="text-red-600">{bins.length}</span>
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Bins Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pb-6">
-              {bins.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-muted-foreground">No bins found</p>
+      {/* Scrollable Bins List */}
+      <div className="pt-[4.5rem]">
+        <main className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="max-w-6xl mx-auto">
+            {isLoading ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                  <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-lg text-muted-foreground">Loading bins...</p>
                 </div>
-              ) : (
-                bins.map((bin, index) => (
+              </div>
+            ) : bins.length > 0 ? (
+              <div className="flex flex-wrap gap-2 sm:gap-6 justify-center">
+                {bins.map((bin, index) => (
                   <div
                     key={bin.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${index * 30}ms` }}
+                    className="animate-fade-in cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] w-[calc(50%-0.5rem)] sm:w-[180px] md:w-[220px] lg:w-[240px] xl:w-[240px]"
+                    style={{ animationDelay: `${index * 20}ms` }}
+                    onClick={() => handleBinClick(bin)}
                   >
                     <BinCard
                       binId={bin.id}
                       itemCount={bin.itemCount}
-                      onClick={() => handleBinClick(bin.id)}
                     />
                   </div>
-                ))
-              )}
-            </div>
-          </>
-        )}
-      </main>
-
-      <Footer />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center space-y-6">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                  <Package className="h-10 w-10 text-gray-600" />
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <Package className="h-8 w-8 text-gray-600" />
+                  <h2 className="text-3xl sm:text-4xl font-semibold text-foreground">
+                    No Bins Found
+                  </h2>
+                </div>
+                <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                  {searchQuery ? 'No bins match your search criteria.' : 'No bins available in the system.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
@@ -295,9 +294,11 @@ const SelectPickupBin = () => {
           <AlertDialogHeader className="text-center">
             <AlertDialogTitle className="text-center">Confirm Bin Selection</AlertDialogTitle>
             <AlertDialogDescription className="space-y-4 text-center">
-              <div className="flex justify-center">
-                <div className="w-full max-w-none">
-                  <BinCard binId={selectedBin || ""} itemCount={0} onClick={() => {}} />
+              <div className="px-4">
+                <div className="w-full">
+                  <div className="w-full [&>div]:!w-full">
+                    <BinCard binId={selectedBin?.id || ""} itemCount={selectedBin?.itemCount || 0} onClick={() => {}} />
+                  </div>
                 </div>
               </div>
               <div className="space-y-3">

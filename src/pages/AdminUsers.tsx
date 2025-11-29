@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppBar } from "@/components/AppBar";
-import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Edit, Search, X } from "lucide-react";
+import { Edit, Search, X, Users } from "lucide-react";
 
 interface User {
   user_name: string;
@@ -20,7 +19,6 @@ const AdminUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -155,83 +153,75 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background pt-[140px]">
+    <div className="min-h-screen bg-background pt-[140px]">
       <AppBar title="Users" showBack username={username} />
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto space-y-4">
-          {isLoading ? (
-            <div className="text-center space-y-4">
-              <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
-              <p className="text-lg text-muted-foreground">Loading users...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                <span className="text-4xl">⚠️</span>
+      {/* Fixed White Div with Search and Stats */}
+      <div className="fixed top-[142px] left-0 right-0 bg-white border-b border-gray-200 z-40 shadow-sm -mt-[6px]">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                </div>
+                <Input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search users..."
+                  className="h-9 sm:h-12 pl-8 sm:pl-10 pr-8 sm:pr-10 text-sm sm:text-base w-full"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                )}
               </div>
-              <h2 className="text-2xl font-semibold text-red-600">API Error</h2>
-              <p className="text-muted-foreground">{error}</p>
-              <p className="text-sm text-muted-foreground">Showing mock data instead</p>
-              <button 
-                onClick={fetchUsers}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Retry
-              </button>
+              
+              {/* Total Users Label */}
+              <div className="text-sm sm:text-lg font-medium text-foreground whitespace-nowrap">
+                Total Users: <span className="text-red-600">{filteredUsers.length > 0 ? filteredUsers.length : users.length}</span>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Search Bar */}
-              <div className="flex justify-center items-center gap-3 mb-6 sm:mb-8">
-                <div className={`transition-all duration-300 ${
-                  isSearchExpanded ? 'w-full max-w-md' : 'w-auto'
-                }`}>
-                  {!isSearchExpanded ? (
-                    <Button
-                      onClick={() => setIsSearchExpanded(true)}
-                      variant="outline"
-                      className="h-12 sm:h-14 w-12 sm:w-14 p-0 bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-gray-300 shadow-sm"
-                    >
-                      <Search className="h-5 w-5" />
-                    </Button>
-                  ) : (
-                    <div className="relative w-full">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Search className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <Input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search users..."
-                        className="h-12 sm:h-14 pl-10 pr-10 text-base"
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => {
-                          setSearchTerm("");
-                          setIsSearchExpanded(false);
-                        }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                  )}
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable Users List */}
+      <div className="pt-[4.5rem]">
+        <main className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="max-w-6xl mx-auto">
+            {isLoading ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                  <div className="animate-spin h-12 w-12 border-4 border-accent border-t-transparent rounded-full mx-auto"></div>
+                  <p className="text-lg text-muted-foreground">Loading users...</p>
                 </div>
               </div>
-              
-              {/* Total Users - Centered */}
-              <div className="text-center mb-6 sm:mb-8">
-                <p className="text-base sm:text-lg text-muted-foreground">
-                  {searchTerm ? "Found" : "Total"} Users: <span className="font-semibold text-foreground">{filteredUsers.length > 0 ? filteredUsers.length : users.length}</span>
-                </p>
+            ) : error ? (
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-4xl">⚠️</span>
+                </div>
+                <h2 className="text-2xl font-semibold text-red-600">API Error</h2>
+                <p className="text-muted-foreground">{error}</p>
+                <p className="text-sm text-muted-foreground">Showing mock data instead</p>
+                <button 
+                  onClick={fetchUsers}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Retry
+                </button>
               </div>
-              
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            ) : filteredUsers.length > 0 ? (
+              <div className="space-y-4">
                 {Array.isArray(filteredUsers) && filteredUsers.map((user) => (
-                  <div key={user.user_phone} className="p-6 border border-border rounded-lg bg-card relative">
+                  <div key={user.user_phone} className="p-4 sm:p-6 border border-border rounded-lg bg-card relative w-full">
                     <div className="absolute top-4 right-4">
                       <Button
                         variant="ghost"
@@ -242,22 +232,41 @@ const AdminUsers = () => {
                         <Edit className="h-4 w-4" />
                       </Button>
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2 pr-10">{user.user_name}</h3>
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">
-                        Role: <span className="font-medium text-foreground capitalize">{user.user_role}</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Phone: <span className="font-medium text-foreground">{user.user_phone}</span>
-                      </p>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 pr-10">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-foreground mb-2">{user.user_name}</h3>
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">
+                            Role: <span className="font-medium text-foreground capitalize">{user.user_role}</span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Phone: <span className="font-medium text-foreground">{user.user_phone}</span>
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      </main>
+            ) : (
+              <div className="text-center space-y-6">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                  <Users className="h-10 w-10 text-gray-600" />
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <Users className="h-8 w-8 text-gray-600" />
+                  <h2 className="text-3xl sm:text-4xl font-semibold text-foreground">
+                    No Users Found
+                  </h2>
+                </div>
+                <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                  {searchTerm ? 'No users match your search criteria.' : 'No users available in the system.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
 
       {/* Edit User Dialog */}
       <AlertDialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -296,8 +305,6 @@ const AdminUsers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Footer />
     </div>
   );
 };
